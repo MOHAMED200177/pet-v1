@@ -1,4 +1,4 @@
-const Cat = require('./../models/petModle');
+const Cat = require('../modles/petModle');
 const APIFeatures = require('./../utils/apiFeatures');
 const catchAsync = require('./../utils/catchAsync');
 

@@ -1,5 +1,5 @@
 const { promisify } = require('util');
-const Customer = require('./../models/CustomerModle');
+const Customer = require('../modles/CustomerModle');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const catchAsync = require('./../utils/catchAsync');
@@ -34,37 +34,6 @@ const createSendToken = (user, statusCode, res) => {
         }
     });
 }
-
-exports.signup = catchAsync(async (req, res, next) => {
-    const newCustomer = await Customer.create({
-        name: req.body.name,
-        email: req.body.email,
-        password: req.body.password,
-        passwordConfirm: req.body.passwordConfirm
-    });
-    createSendToken(newCustomer, 201, res);
-});
-
-
-exports.login = catchAsync(async (req, res, next) => {
-    const { email, password } = req.body;
-
-    // 1) Check if email and password exist
-    if (!email || !password) {
-        return next(new AppError('Please provide email and password!', 400));
-    }
-    // 2) Check if user exists && password is correct
-    const customer = await Customer.findOne({ email }).select('+password');
-
-    if (!customer || !(await customer.correctPassword(password, customer.password))) {
-        return next(new AppError('Incorrect email or password', 401));
-    }
-
-    // 3) If everything ok, send token to client
-    createSendToken(customer, 200, res);
-});
-
-
 
 exports.protect = catchAsync(async (req, res, next) => {
     // 1) Getting token and check of it's there
@@ -160,13 +129,97 @@ exports.restrictTo = (...roles) => {
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
+    const customer = await Customer.findOne({ email: req.body.email });
+
+    if (customer && !customer.verified) {
+        const token = customer.createVerificationToken();
+        await customer.save({ validateBeforeSave: false });
+
+        const verificationURL = `${req.protocol}://${req.get('host')}/api/v1/customers/verify-email/${token}`;
+
+        const message = `Please verify your email by clicking on the following link: ${verificationURL}`;
+        try {
+            await sendEmail({
+                email: customer.email,
+                subject: 'Your email verification token (valid for 10 minutes)',
+                message
+            });
+
+            return res.status(200).json({
+                status: 'success',
+                message: 'Verification email sent again. Please check your inbox.'
+            });
+        } catch (err) {
+            console.error('Error sending email:', err.message, err.stack);
+            customer.verificationToken = undefined;
+            customer.verificationTokenExpires = undefined;
+            await customer.save({ validateBeforeSave: false });
+
+            return next(
+                new AppError('There was an error sending the email. Try again later!'),
+                500
+            );
+        }
+    }
     const newCustomer = await Customer.create({
         name: req.body.name,
         email: req.body.email,
         password: req.body.password,
-        passwordConfirm: req.body.passwordConfirm
+        passwordConfirm: req.body.passwordConfirm,
     });
-    createSendToken(newCustomer, 201, res);
+    const token = await newCustomer.createVerificationToken();
+    await newCustomer.save({ validateBeforeSave: false })
+
+    const verificationURL = `${req.protocol}://${req.get('host')}/api/v1/customers/verify-email/${token}`;
+
+    const message = `Please verify your email by clicking on the following link: ${verificationURL}`;
+    try {
+        await sendEmail({
+            email: newCustomer.email,
+            subject: 'Your email verification token (valid for 10 minutes)',
+            message
+        });
+        res.status(201).json({
+            status: 'success',
+            message: 'Verification email sent. Please check your inbox.'
+        });
+    } catch (err) {
+        console.error('Error sending email:', err.message, err.stack);
+        newCustomer.verificationToken = undefined;
+        newCustomer.verificationTokenExpires = undefined;
+        await newCustomer.save({ validateBeforeSave: false });
+
+        return next(
+            new AppError('There was an error sending the email. Try again later!'),
+            500
+        );
+    }
+});
+
+
+exports.verifyEmail = catchAsync(async (req, res, next) => {
+    // 1) Get user based on the token
+    const hashedToken = crypto
+        .createHash('sha256')
+        .update(req.params.token)
+        .digest('hex');
+
+    const customer = await Customer.findOne({
+        verificationToken: hashedToken,
+        verificationTokenExpires: { $gt: Date.now() }
+    });
+
+    if (!customer) {
+        return next(new AppError('Token is invalid or has expired', 400));
+    }
+
+    customer.verificationToken = undefined;
+    customer.verificationTokenExpires = undefined;
+    customer.emailVerified = true;
+    await customer.save({ validateBeforeSave: false });
+
+
+    createSendToken(customer, 200, res);
 });
 
 
@@ -182,6 +235,12 @@ exports.login = catchAsync(async (req, res, next) => {
 
     if (!customer || !(await customer.correctPassword(password, customer.password))) {
         return next(new AppError('Incorrect email or password', 401));
+    }
+
+
+    // 3) Check if the email has been verified
+    if (!customer.emailVerified) {
+        return next(new AppError('Your email has not been verified. Please verify your email to log in.', 403));
     }
 
     // 3) If everything ok, send token to client

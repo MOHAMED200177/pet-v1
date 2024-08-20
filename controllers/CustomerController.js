@@ -1,4 +1,4 @@
-const Customer = require('./../models/CustomerModle');
+const Customer = require('../modles/CustomerModle');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 

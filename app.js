@@ -9,6 +9,8 @@ const xss = require('xss-clean');
 
 const catRoute = require('./routes/petRoute');
 const customerRoute = require('./routes/CustomerRoute');
+const AppError = require('./utils/appError');
+const globalErrorHandler = require('./controllers/errorController');
 
 const app = express();
 
@@ -51,5 +53,5 @@ app.use((req, res, next) => {
 // 2) ROUTES
 app.use('/api/v1/cats', catRoute);
 app.use('/api/v1/customers', customerRoute);
-
+app.use(globalErrorHandler);
 module.exports = app;
