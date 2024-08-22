@@ -49,7 +49,13 @@ const customerSchema = new mongoose.Schema({
         type: Boolean,
         default: true,
         select: false
-    }
+    },
+    emailVerified: {
+        type: Boolean,
+        default: false,
+    },
+    verificationToken: String,
+    verificationTokenExpires: Date,
 });
 
 customerSchema.pre('save', async function (next) {
@@ -109,6 +115,20 @@ customerSchema.methods.createPasswordResetToken = function () {
     console.log({ resetToken }, this.passwordResetToken);
 
     this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+    return resetToken;
+};
+customerSchema.methods.createVerificationToken = function () {
+    const resetToken = crypto.randomBytes(32).toString('hex');
+
+    this.verificationToken = crypto
+        .createHash('sha256')
+        .update(resetToken)
+        .digest('hex');
+
+    console.log({ resetToken }, this.verificationToken);
+
+    this.verificationTokenExpires = Date.now() + 10 * 60 * 1000;
 
     return resetToken;
 };
