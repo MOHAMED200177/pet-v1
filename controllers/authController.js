@@ -132,12 +132,11 @@ exports.signup = catchAsync(async (req, res, next) => {
     const customer = await Customer.findOne({ email: req.body.email });
 
     if (customer && !customer.verified) {
-        const token = customer.createVerificationToken();
+        customer.verificationToken = Math.floor(100000 + Math.random() * 900000);
+        customer.verificationTokenExpires = Date.now() + 10 * 60 * 1000;
         await customer.save({ validateBeforeSave: false });
 
-        const verificationURL = `${req.protocol}://${req.get('host')}/api/v1/customers/verify-email/${token}`;
-
-        const message = `Please verify your email by clicking on the following link: ${verificationURL}`;
+        const message = `Please verify your email by this numbers: ${token}`;
         try {
             await sendEmail({
                 email: customer.email,
@@ -167,12 +166,12 @@ exports.signup = catchAsync(async (req, res, next) => {
         password: req.body.password,
         passwordConfirm: req.body.passwordConfirm,
     });
-    const token = await newCustomer.createVerificationToken();
+    newCustomer.verificationToken = Math.floor(100000 + Math.random() * 900000);
+    newCustomer.verificationTokenExpires = Date.now() + 10 * 60 * 1000;
     await newCustomer.save({ validateBeforeSave: false })
+    console.log(newCustomer.verificationToken);
 
-    const verificationURL = `${req.protocol}://${req.get('host')}/api/v1/customers/verify-email/${token}`;
-
-    const message = `Please verify your email by clicking on the following link: ${verificationURL}`;
+    const message = `Please verify your email by this numbers: ${newCustomer.verificationToken}`;
     try {
         await sendEmail({
             email: newCustomer.email,
@@ -198,14 +197,9 @@ exports.signup = catchAsync(async (req, res, next) => {
 
 
 exports.verifyEmail = catchAsync(async (req, res, next) => {
-    // 1) Get user based on the token
-    const hashedToken = crypto
-        .createHash('sha256')
-        .update(req.params.token)
-        .digest('hex');
 
     const customer = await Customer.findOne({
-        verificationToken: hashedToken,
+        verificationToken: req.body.token,
         verificationTokenExpires: { $gt: Date.now() }
     });
 

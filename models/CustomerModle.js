@@ -118,20 +118,15 @@ customerSchema.methods.createPasswordResetToken = function () {
 
     return resetToken;
 };
+
 customerSchema.methods.createVerificationToken = function () {
-    const resetToken = crypto.randomBytes(32).toString('hex');
-
-    this.verificationToken = crypto
-        .createHash('sha256')
-        .update(resetToken)
-        .digest('hex');
-
-    console.log({ resetToken }, this.verificationToken);
+    this.verificationToken = Math.floor(100000 + Math.random() * 900000);
 
     this.verificationTokenExpires = Date.now() + 10 * 60 * 1000;
 
-    return resetToken;
+    return this.verificationToken;
 };
+
 const Customer = mongoose.model('Customer', customerSchema);
 
 module.exports = Customer;
