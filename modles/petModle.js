@@ -1,29 +1,48 @@
 const mongoose = require('mongoose');
 
-const catSchema = new mongoose.Schema({
+const petSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: [true, 'Please provide a name for the cat'],
+        required: [true, 'Please provide a name'],
         trim: true
     },
     age: {
         type: Number,
-        required: [true, 'Please provide an age for the cat']
+        required: [true, 'Please provide an age']
+    },
+    type: {
+        type: String,
+        enum: ['Cat', 'Dog'],
+        required: [true, 'Please provide a type']
     },
     breed: {
         type: String,
-        required: [true, 'Please provide a breed for the cat'],
+        required: [true, 'Please provide a breed'],
         trim: true
+    },
+    typeWeight: {
+        type: String,
+        enum: ['kilogram', 'pound'],
+        default: 'kilogram'
+    },
+    weight: {
+        type: Number,
+        required: [true, 'Please provide a weight']
+    },
+    gender: {
+        type: String,
+        enum: ['male', 'female'],
+        required: [true, 'Please provide a gender']
+    },
+    color: {
+        type: String,
+        enum: ['black', 'white', 'gray', 'brown', 'orange', 'cream'],
+        required: [true, 'Please provide a color']
     },
     description: {
         type: String,
-        required: [true, 'Please provide a description for the cat'],
+        required: [true, 'Please provide a description'],
         trim: true
-    },
-    adoptionStatus: {
-        type: String,
-        enum: ['Available', 'Adopted', 'Pending'],
-        default: 'Available'
     },
     dateAdded: {
         type: Date,
@@ -36,11 +55,18 @@ const catSchema = new mongoose.Schema({
                 return val.length <= 3;
             },
             message: 'A cat can have up to 3 images'
-        }
+        },
+        required: [true, 'Please provide an image'],
     },
-    location: {
+    address: {
         type: String,
-        required: [true, 'Please provide a location']
+        required: [true, 'Please provide an address'],
+        trim: true
+    },
+    city: {
+        type: String,
+        required: [true, 'Please provide a city'],
+        trim: true
     },
     email: {
         type: String,
@@ -48,17 +74,18 @@ const catSchema = new mongoose.Schema({
         trim: true
     },
     phone: {
-        type: String,
+        type: Number,
         required: [true, 'Please provide a phone number'],
         validate: {
             validator: function (val) {
                 return /\d{10,15}/.test(val);
             },
             message: 'Please provide a valid phone number'
-        }
+        },
+        required: [true, 'Please provide a phone'],
     }
 });
 
-const Cat = mongoose.model('Cat', catSchema);
+const Cat = mongoose.model('Cat', petSchema);
 
 module.exports = Cat;

@@ -1,17 +1,17 @@
 const express = require('express');
-const catController = require('./../controllers/petController');
+const petController = require('./../controllers/petController');
 const upload = require('./../utils/multer');
 const router = express.Router();
 
 router
     .route('/')
-    .get(catController.getAllCats)
-    .post(upload.array('imageUrl', 3), catController.createCat); // Apply the upload middleware
+    .get(petController.getAllPets)
+    .post(upload.array('imageUrl', 3), petController.createPet); // Apply the upload middleware
 
-router
-    .route('/:id')
-    .get(catController.getCat)
-    .patch(catController.updateCat)
-    .delete(catController.deleteCat);
+// router
+//     .route('/:id')
+//     .get(petController.getCat)
+//     .patch(petController.updateCat)
+//     .delete(petController.deleteCat);
 
 module.exports = router;

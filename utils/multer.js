@@ -6,7 +6,7 @@ const path = require('path');
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
-        folder: 'pet_images', // folder in Cloudinary to store images
+        folder: 'pet', // folder in Cloudinary to store images
         allowed_formats: ['jpeg', 'jpg', 'png']
     },
 });

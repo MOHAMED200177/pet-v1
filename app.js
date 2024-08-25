@@ -51,7 +51,7 @@ app.use((req, res, next) => {
 });
 
 // 2) ROUTES
-app.use('/api/v1/cats', catRoute);
+app.use('/api/v1/pets', catRoute);
 app.use('/api/v1/customers', customerRoute);
 app.use(globalErrorHandler);
 module.exports = app;
