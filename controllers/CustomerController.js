@@ -1,6 +1,7 @@
 const Customer = require('../modles/CustomerModle');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
+const factory = require('./handlerFactory');
 
 const filterObj = (obj, ...allowedFields) => {
     const newObj = {};
@@ -33,63 +34,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 });
 
 
-exports.deleteMe = catchAsync(async (req, res, next) => {
-    await User.findByIdAndUpdate(req.user.id, { active: false });
 
-    res.status(204).json({
-        status: 'success',
-        data: null
-    });
-});
-
-// exports.createCustomer = async (req, res) => {
-//     try {
-//         const newCustomer = await Customer.create(req.body);
-//         res.status(201).json({
-//             status: 'success',
-//             data: {
-//                 customer: newCustomer
-//             }
-//         });
-//     } catch (err) {
-//         res.status(400).json({
-//             status: 'fail',
-//             message: err.message
-//         });
-//     }
-// };
-
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-    const users = await Customer.find();
-
-    // SEND RESPONSE
-    res.status(200).json({
-        status: 'success',
-        results: users.length,
-        data: {
-            users
-        }
-    });
-});
-
-
-exports.deleteCustomer = async (req, res) => {
-    try {
-        const customer = await Customer.findByIdAndDelete(req.params.id);
-        if (!customer) {
-            return res.status(404).json({
-                status: 'fail',
-                message: 'No customer found with that ID'
-            });
-        }
-        res.status(204).json({
-            status: 'success',
-            data: null
-        });
-    } catch (err) {
-        res.status(400).json({
-            status: 'fail',
-            message: err.message
-        });
-    }
-};
+exports.getAllUsers = factory.getAll(Customer);
+exports.getUser = factory.getOne(Customer);
+exports.deleteUser = factory.deleteOne(Customer);

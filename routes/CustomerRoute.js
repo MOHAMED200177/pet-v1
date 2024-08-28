@@ -14,12 +14,12 @@ router.post('/forgotPassword', authController.forgotPassword);
 router.patch('/resetPassword/:token', authController.resetPassword);
 router.patch('/updatePassword', authController.protect, authController.updatePassword);
 router.patch('/updateMe', authController.protect, customerController.updateMe);
-router.delete('/deleteMe', authController.protect, customerController.deleteMe);
+router.delete('/deleteMe', authController.protect, customerController.deleteUser);
 
 router.get('/', authController.protect, customerController.getAllUsers);
 
 router
     .route('/:id')
-    .delete(authController.restrictTo('admin'), customerController.deleteCustomer);
+    .delete(authController.restrictTo('admin'), customerController.deleteUser);
 
 module.exports = router;

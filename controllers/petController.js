@@ -1,5 +1,4 @@
 const Pet = require('../modles/petModle');
-const APIFeatures = require('./../utils/apiFeatures');
 const catchAsync = require('./../utils/catchAsync');
 const uploud = require('./../utils/multer');
 const factory = require('./handlerFactory');
@@ -39,77 +38,7 @@ exports.createPet = catchAsync(async (req, res) => {
     });
 });
 
-exports.getAllPets = catchAsync(async (req, res) => {
-    const features = new APIFeatures(Pet.find(), req.query)
-        .filter()
-        .sort()
-        .limitFields()
-        .paginate();
-
-    const pets = await features.query;
-
-    res.status(200).json({
-        status: 'success',
-        results: pets.length,
-        data: {
-            pets
-        }
-    });
-});
-
-// exports.getCat = catchAsync(async (req, res) => {
-//     const cat = await Cat.findById(req.params.id);
-
-//     if (!cat) {
-//         return res.status(404).json({
-//             status: 'fail',
-//             message: 'Cat not found'
-//         });
-//     }
-
-//     res.status(200).json({
-//         status: 'success',
-//         data: {
-//             cat
-//         }
-//     });
-// });
-
-// exports.updateCat = catchAsync(async (req, res) => {
-//     const cat = await Cat.findByIdAndUpdate(req.params.id, req.body, {
-//         new: true,
-//         runValidators: true
-//     });
-
-//     if (!cat) {
-//         return res.status(404).json({
-//             status: 'fail',
-//             message: 'Cat not found'
-//         });
-//     }
-
-//     res.status(200).json({
-//         status: 'success',
-//         data: {
-//             cat
-//         }
-//     });
-// });
-
-// exports.deleteCat = catchAsync(async (req, res) => {
-//     const cat = await Cat.findById(req.params.id);
-
-//     if (!cat) {
-//         return res.status(404).json({
-//             status: 'fail',
-//             message: 'Cat not found'
-//         });
-//     }
-
-//     await Cat.findByIdAndDelete(req.params.id);
-
-//     res.status(204).json({
-//         status: 'success',
-//         data: null
-//     });
-// });
+exports.getAllPets = factory.getAll(Pet);
+exports.getPet = factory.getOne(Pet);
+exports.updatePet = factory.updateOne(Pet);
+exports.deletePet = factory.deleteOne(Pet);
