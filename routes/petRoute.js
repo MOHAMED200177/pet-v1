@@ -1,17 +1,26 @@
 const express = require('express');
 const petController = require('./../controllers/petController');
+const authController = require('./../controllers/authController');
 const upload = require('./../utils/multer');
 const router = express.Router();
 
 router
     .route('/')
     .get(petController.getAllPets)
-    .post(upload.array('imageUrl', 3), petController.createPet); // Apply the upload middleware
+    .post(authController.protect,
+        upload.array('imageUrl', 3),
+        petController.createPet); // Apply the upload middleware
 
-// router
-//     .route('/:id')
-//     .get(petController.getCat)
-//     .patch(petController.updateCat)
-//     .delete(petController.deleteCat);
+
+router.use(authController.protect);
+
+
+
+
+router
+    .route('/:id')
+    .get(petController.getPet)
+    .patch(petController.updatePet)
+    .delete(petController.deletePet);
 
 module.exports = router;

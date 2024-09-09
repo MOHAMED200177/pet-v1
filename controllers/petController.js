@@ -25,6 +25,7 @@ exports.createPet = catchAsync(async (req, res) => {
         phone: req.body.phone,
         address: req.body.address,
         city: req.body.city,
+        user: req.user._id,
         dateAdded: Date.now()
     };
 
@@ -39,6 +40,11 @@ exports.createPet = catchAsync(async (req, res) => {
 });
 
 exports.getAllPets = factory.getAll(Pet);
-exports.getPet = factory.getOne(Pet);
+
+exports.getPet = factory.getOne(Pet, {
+    path: 'user',
+    select: 'name email'
+});
+
 exports.updatePet = factory.updateOne(Pet);
 exports.deletePet = factory.deleteOne(Pet);

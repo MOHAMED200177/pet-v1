@@ -56,7 +56,7 @@ const petSchema = new mongoose.Schema({
             },
             message: 'A cat can have up to 3 images'
         },
-        required: [true, 'Please provide an image'],
+        // required: [true, 'Please provide an image'],
     },
     address: {
         type: String,
@@ -83,6 +83,10 @@ const petSchema = new mongoose.Schema({
             message: 'Please provide a valid phone number'
         },
         required: [true, 'Please provide a phone'],
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Customer'
     }
 });
 
