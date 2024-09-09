@@ -17,7 +17,7 @@ const petSchema = new mongoose.Schema({
     },
     breed: {
         type: String,
-        // required: [true, 'Please provide a breed'],
+        required: [true, 'Please provide a breed'],
         trim: true
     },
     typeWeight: {
@@ -56,7 +56,7 @@ const petSchema = new mongoose.Schema({
             },
             message: 'A cat can have up to 3 images'
         },
-        // required: [true, 'Please provide an image'],
+        required: [true, 'Please provide an image'],
     },
     address: {
         type: String,
@@ -68,14 +68,9 @@ const petSchema = new mongoose.Schema({
         required: [true, 'Please provide a city'],
         trim: true
     },
-    email: {
-        type: String,
-        // required: [true, 'Please provide an email'],
-        trim: true
-    },
     phone: {
         type: Number,
-        // required: [true, 'Please provide a phone number'],
+        required: [true, 'Please provide a phone number'],
         validate: {
             validator: function (val) {
                 return /\d{10,15}/.test(val);

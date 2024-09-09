@@ -40,11 +40,9 @@ exports.createPet = catchAsync(async (req, res) => {
 });
 
 exports.getAllPets = factory.getAll(Pet);
-
 exports.getPet = factory.getOne(Pet, {
     path: 'user',
     select: 'name email'
 });
-
 exports.updatePet = factory.updateOne(Pet);
 exports.deletePet = factory.deleteOne(Pet);

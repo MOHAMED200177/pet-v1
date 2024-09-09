@@ -12,6 +12,7 @@ router
         petController.createPet); // Apply the upload middleware
 
 
+
 router.use(authController.protect);
 
 
