@@ -77,7 +77,6 @@ const petSchema = new mongoose.Schema({
             },
             message: 'Please provide a valid phone number'
         },
-        required: [true, 'Please provide a phone'],
     },
     user: {
         type: mongoose.Schema.Types.ObjectId,

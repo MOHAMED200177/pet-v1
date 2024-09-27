@@ -255,9 +255,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
 
     // 3) Send it to user's email
-    const resetURL = `${req.protocol}://${req.get(
-        'host'
-    )}/api/v1/customers/resetPassword/${resetToken}`;
+    const resetURL = `https://petopia-psi.vercel.app/reset-password/${resetToken}`;
 
     const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}.\nIf you didn't forget your password, please ignore this email!`;
 

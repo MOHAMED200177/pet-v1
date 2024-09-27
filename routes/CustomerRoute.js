@@ -11,7 +11,15 @@ router.patch('/verify-email', authController.verifyEmail);
 
 router.post('/forgotPassword', authController.forgotPassword);
 
+router.get('/resetPassword/:token', authController.resetPassword);
 router.patch('/resetPassword/:token', authController.resetPassword);
+
+
+
+
+
+
+
 router.patch('/updatePassword', authController.protect, authController.updatePassword);
 router.patch('/updateMe', authController.protect, customerController.updateMe);
 router.delete('/deleteMe', authController.protect, customerController.deleteUser);

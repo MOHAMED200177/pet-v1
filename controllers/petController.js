@@ -1,7 +1,7 @@
 const Pet = require('../modles/petModle');
 const catchAsync = require('./../utils/catchAsync');
-const uploud = require('./../utils/multer');
 const factory = require('./handlerFactory');
+const uploud = require('./../utils/multer');
 
 
 exports.createPet = catchAsync(async (req, res) => {
