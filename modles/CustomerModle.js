@@ -56,6 +56,7 @@ const customerSchema = new mongoose.Schema({
     },
     verificationToken: String,
     verificationTokenExpires: Date,
+    tokenInvalidationTime: Date
 });
 
 customerSchema.pre('save', async function (next) {
@@ -73,7 +74,7 @@ customerSchema.pre('save', async function (next) {
 customerSchema.pre('save', function (next) {
     if (!this.isModified('password') || this.isNew) return next();
 
-    this.passwordChangedAt = Date.now() - 1000;
+    this.tokenInvalidationTime = Date.now() - 1000;
     next();
 });
 
