@@ -17,7 +17,7 @@ const petSchema = new mongoose.Schema({
     },
     breed: {
         type: String,
-        // required: [true, 'Please provide a breed'],
+        required: [true, 'Please provide a breed'],
         trim: true
     },
     typeWeight: {
@@ -70,7 +70,7 @@ const petSchema = new mongoose.Schema({
     },
     phone: {
         type: Number,
-        // required: [true, 'Please provide a phone number'],
+        required: [true, 'Please provide a phone number'],
         validate: {
             validator: function (val) {
                 return /\d{10,15}/.test(val);

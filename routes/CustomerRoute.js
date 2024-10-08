@@ -1,6 +1,7 @@
 const express = require('express');
 const customerController = require('./../controllers/CustomerController');
 const authController = require('./../controllers/authController');
+const upload = require('./../utils/multer');
 
 const router = express.Router();
 
@@ -24,7 +25,7 @@ router.patch('/resetPassword/:token', authController.resetPassword);
 
 
 router.patch('/updatePassword', authController.protect, authController.updatePassword);
-router.patch('/updateMe', authController.protect, customerController.updateMe);
+router.patch('/updateMe', authController.protect, upload.single('photo'), customerController.updateMe);
 router.delete('/deleteMe', authController.protect, customerController.deleteUser);
 
 router.get('/', authController.protect, customerController.getAllUsers);

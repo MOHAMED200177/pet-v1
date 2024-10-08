@@ -20,8 +20,12 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     // allowed to be update
     const filteredBody = filterObj(req.body, "name", "email");
 
+    if (req.file) {
+        filteredBody.photo = req.file.path;
+    }
+
     // update data
-    const updatedUser = await Customer.findByIdAndUpdate(req.customer.id, filteredBody, {
+    const updatedUser = await Customer.findByIdAndUpdate(req.user.id, filteredBody, {
         new: true,
         runValidators: true
     });

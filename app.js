@@ -6,9 +6,11 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
+const cookieParser = require('cookie-parser');
 
 const catRoute = require('./routes/petRoute');
 const customerRoute = require('./routes/CustomerRoute');
+const adoptionFormRoutes = require('./routes/adoptionFormRoutes');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 
@@ -33,6 +35,8 @@ const limiter = rateLimit({
 });
 app.use("api", limiter);
 
+app.use(cookieParser());
+
 
 app.use((req, res, next) => {
   console.log('Hello from the middleware 👋');
@@ -53,5 +57,6 @@ app.use((req, res, next) => {
 // 2) ROUTES
 app.use('/api/v1/pets', catRoute);
 app.use('/api/v1/customers', customerRoute);
+app.use('/api/v1/adoptionForms', adoptionFormRoutes);
 app.use(globalErrorHandler);
 module.exports = app;
