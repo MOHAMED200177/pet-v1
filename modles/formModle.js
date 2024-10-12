@@ -9,13 +9,8 @@ const adoptionFormSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
-        unique: true,
         trim: true,
         lowercase: true,
-    },
-    date: {
-        type: Date,
-        required: true,
     },
     phoneNumber: {
         type: String,

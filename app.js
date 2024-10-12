@@ -16,7 +16,12 @@ const globalErrorHandler = require('./controllers/errorController');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000', 'https://petopia-psi.vercel.app'],
+  credentials: true,
+  methods: 'GET,POST,PUT,PATCH,DELETE',
+  allowedHeaders: 'Content-Type,Authorization'
+}));
 
 // 1) MIDDLEWARES
 if (process.env.NODE_ENV === 'development') {
