@@ -25,3 +25,32 @@ transporter.verify(function (error, success) {
         console.log('SMTP connection successful:', success);
     }
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export default function getStudentIdsSum(students) {
+    return students.reduce((sum, num) => sum + num.id , 0);
+}
