@@ -83,7 +83,7 @@ exports.getAll = Model =>
     res.status(200).json({
       status: 'success',
       results: doc.length,
-      paginate: doc.length / 10,
+      paginate: Math.ceil(doc.length / 10),
       data: {
         data: doc
       }
