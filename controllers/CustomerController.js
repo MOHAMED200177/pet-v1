@@ -16,9 +16,10 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     // 1- error if posted password data
     if (req.body.password || req.body.passwordConfirm) {
         return next(new AppError('This route is not for password updates. Please use /updateMyPassword.', 400));
-    };
-    // allowed to be update
-    const filteredBody = filterObj(req.body, "name", "email");
+    }
+
+    // allowed to be updated
+    const filteredBody = filterObj(req.body, "name", "photo", "address", "city", "phone");
 
     if (req.file) {
         filteredBody.photo = req.file.path;
@@ -29,9 +30,15 @@ exports.updateMe = catchAsync(async (req, res, next) => {
         new: true,
         runValidators: true
     });
+
+    // Check if user was found and updated
+    if (!updatedUser) {
+        return next(new AppError('No user found with that ID.', 404));
+    }
+
     res.status(200).json({
         status: 'success',
-        Data: {
+        data: {
             user: updatedUser
         }
     });

@@ -22,6 +22,26 @@ const customerSchema = new mongoose.Schema({
         enum: ['user', 'admin'],
         default: 'user'
     },
+    address: {
+        type: String,
+        required: [true, 'Please provide an address'],
+        trim: true
+    },
+    city: {
+        type: String,
+        required: [true, 'Please provide a city'],
+        trim: true
+    },
+    phone: {
+        type: Number,
+        required: [true, 'Please provide a phone number'],
+        validate: {
+            validator: function (val) {
+                return /\d{10,15}/.test(val);
+            },
+            message: 'Please provide a valid phone number'
+        },
+    },
     pet: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Pet'
