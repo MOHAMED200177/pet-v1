@@ -1,7 +1,7 @@
 const Pet = require('../modles/petModle');
+const Customer = require('../modles/CustomerModle');
 const catchAsync = require('./../utils/catchAsync');
 const factory = require('./handlerFactory');
-const uploud = require('./../utils/multer');
 
 
 exports.createPet = catchAsync(async (req, res) => {
@@ -30,6 +30,18 @@ exports.createPet = catchAsync(async (req, res) => {
     };
 
     const newPet = await Pet.create(data);
+
+
+    const updatedCustomer = await Customer.findByIdAndUpdate(req.user.id, {
+        pet: newPet._id
+    }, {
+        new: true,
+        runValidators: true
+    });
+
+    if (!updatedCustomer) {
+        return next(new AppError('No customer found with that ID', 404));
+    }
 
     res.status(201).json({
         status: 'success',

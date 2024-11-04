@@ -11,7 +11,6 @@ const cookieParser = require('cookie-parser');
 const catRoute = require('./routes/petRoute');
 const customerRoute = require('./routes/CustomerRoute');
 const adoptionFormRoutes = require('./routes/adoptionFormRoutes');
-const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 
 const app = express();
@@ -20,7 +19,7 @@ app.use(cors({
   origin: ['https://petopia-psi.vercel.app', 'http://localhost:5173'],
   credentials: true,
   methods: 'GET,POST,PUT,PATCH,DELETE',
-  allowedHeaders: 'Content-Type,Authorization'
+  allowedHeaders: 'Content-Type,Authorization',
 }));
 
 // 1) MIDDLEWARES
@@ -36,24 +35,20 @@ app.use(helmet());
 const limiter = rateLimit({
   max: 100,
   windowMs: 60 * 60 * 1000,
-  message: 'Too many requests from this IP, please try again in an hour!'
+  message: 'Too many requests from this IP, please try again in an hour!',
 });
-app.use("api", limiter);
+app.use('api', limiter);
 
 app.use(cookieParser());
-
 
 app.use((req, res, next) => {
   console.log('Hello from the middleware 👋');
   next();
 });
 
-
 app.use(mongoSanitize());
 
 app.use(xss());
-
-
 
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();

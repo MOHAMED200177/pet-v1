@@ -22,6 +22,10 @@ const customerSchema = new mongoose.Schema({
         enum: ['user', 'admin'],
         default: 'user'
     },
+    pet: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Pet'
+    },
     password: {
         type: String,
         required: [true, 'Please provide a password'],

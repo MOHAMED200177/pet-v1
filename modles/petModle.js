@@ -84,6 +84,6 @@ const petSchema = new mongoose.Schema({
     }
 });
 
-const Cat = mongoose.model('Cat', petSchema);
+const Cat = mongoose.model('Pet', petSchema);
 
 module.exports = Cat;
