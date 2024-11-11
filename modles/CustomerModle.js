@@ -24,7 +24,7 @@ const customerSchema = new mongoose.Schema({
     },
     address: {
         type: String,
-        required: [true, 'Please provide an address'],
+        // required: [true, 'Please provide an address'],
         trim: true
     },
     city: {

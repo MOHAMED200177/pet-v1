@@ -2,6 +2,7 @@ const Customer = require('../modles/CustomerModle');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const factory = require('./handlerFactory');
+const { isValidObjectId } = require('mongoose');
 
 const filterObj = (obj, ...allowedFields) => {
     const newObj = {};
@@ -11,6 +12,13 @@ const filterObj = (obj, ...allowedFields) => {
     return newObj;
 };
 
+exports.getMe = (req, res, next) => {
+    if (!isValidObjectId(req.user.id)) {
+        return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+    req.params.id = req.user.id;
+    next();
+};
 
 exports.updateMe = catchAsync(async (req, res, next) => {
     // 1- error if posted password data
@@ -49,7 +57,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 exports.getAllUsers = factory.getAll(Customer);
 exports.getUser = factory.getOne(Customer, {
     path: 'pet',
-    select: 'name'
+    select: 'name age gender description imageUrl '
 }
 );
 exports.deleteUser = factory.deleteOne(Customer);

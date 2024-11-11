@@ -18,7 +18,8 @@ const createSendToken = (user, statusCode, res) => {
         expires: new Date(
             Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
         ),
-        httpOnly: true
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
     };
     if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
 
@@ -41,11 +42,11 @@ exports.protect = catchAsync(async (req, res, next) => {
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         token = req.headers.authorization.split(' ')[1]
     }
-    else if (!req.cookies || !req.cookies.jwt) {
-        token = req.cookies.jwt;
+    else if (!req.cookies && !req.cookies.jwt) {
         return next(new AppError('You are not logged in! Please log in to get access.', 401));
     }
 
+    token = req.cookies.jwt;
 
     // 2) Verification token
     const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
