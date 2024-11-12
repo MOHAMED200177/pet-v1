@@ -158,6 +158,10 @@ exports.signup = catchAsync(async (req, res, next) => {
         email: req.body.email,
         password: req.body.password,
         passwordConfirm: req.body.passwordConfirm,
+        photo: req.body.photo,
+        phone: req.body.phone,
+        address: req.body.address,
+        city: req.body.city,
     });
     newCustomer.verificationToken = Math.floor(100000 + Math.random() * 900000);
     newCustomer.verificationTokenExpires = Date.now() + 10 * 60 * 1000;
