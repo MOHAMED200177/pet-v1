@@ -161,7 +161,7 @@ exports.signup = catchAsync(async (req, res, next) => {
         photo: req.body.photo,
         phone: req.body.phone,
         address: req.body.address,
-        city: req.body.city,
+        city: req.body.city
     });
     newCustomer.verificationToken = Math.floor(100000 + Math.random() * 900000);
     newCustomer.verificationTokenExpires = Date.now() + 10 * 60 * 1000;
