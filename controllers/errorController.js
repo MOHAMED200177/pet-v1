@@ -6,9 +6,9 @@ const handleCastErrorDB = err => {
 };
 
 const handleDuplicateFieldsDB = err => {
-  // تأكد من وجود err.keyValue
-  const field = Object.keys(err.keyValue)[0]; // الحقل المكرر
-  const value = err.keyValue[field]; // القيمة المكررة
+
+  const field = Object.keys(err.keyValue)[0];
+  const value = err.keyValue[field];
 
   const message = `Duplicate field value: ${value}. Please use another value!`;
   return new AppError(message, 400);
