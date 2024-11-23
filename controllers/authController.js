@@ -39,11 +39,11 @@ const createSendToken = (user, statusCode, res) => {
 exports.protect = catchAsync(async (req, res, next) => {
     let token;
     // 1) Getting token and check of it's there
-    if (!req.cookies && !req.cookies.jwt) {
+    if (req.cookies && req.cookies.jwt) {
+        token = req.cookies.jwt;
+    } else {
         return next(new AppError('You are not logged in! Please log in to get access.', 401));
     }
-
-    token = req.cookies.jwt;
 
     // 2) Verification token
     const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
