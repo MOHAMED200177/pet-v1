@@ -15,6 +15,7 @@ const globalErrorHandler = require('./controllers/errorController');
 
 const app = express();
 
+app.use(cookieParser());
 app.use(cors({
   origin: ['https://petopia-one.vercel.app', 'http://localhost:5173'],
   credentials: true,
@@ -39,7 +40,6 @@ const limiter = rateLimit({
 });
 app.use('api', limiter);
 
-app.use(cookieParser());
 
 app.use((req, res, next) => {
   console.log('Hello from the middleware 👋');
