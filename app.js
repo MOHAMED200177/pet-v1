@@ -15,11 +15,11 @@ const globalErrorHandler = require('./controllers/errorController');
 
 const app = express();
 
+app.use(cookieParser());
 app.use(cors({
   origin: ['https://petopia-one.vercel.app', 'http://localhost:5173'],
   credentials: true,
 }));
-app.use(cookieParser());
 
 // 1) MIDDLEWARES
 if (process.env.NODE_ENV === 'development') {
