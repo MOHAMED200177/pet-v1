@@ -16,7 +16,7 @@ const globalErrorHandler = require('./controllers/errorController');
 const app = express();
 
 app.use(cors({
-  origin: 'https://petopia-one.vercel.app',
+  origin: ['https://petopia-one.vercel.app', 'http://localhost:5173'],
   credentials: true,
 }));
 app.use(cookieParser());
