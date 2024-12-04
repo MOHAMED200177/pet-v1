@@ -1,5 +1,5 @@
 const { promisify } = require('util');
-const Customer = require('../modles/CustomerModle');
+const User = require('../modles/CustomerModle');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const catchAsync = require('./../utils/catchAsync');
@@ -120,16 +120,16 @@ exports.restrictTo = (...roles) => {
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
-    const customer = await Customer.findOne({ email: req.body.email });
+    const user = await User.findOne({ email: req.body.email });
 
-    if (customer && !customer.emailVerified) {
-        customer.verificationToken = Math.floor(100000 + Math.random() * 900000);
-        customer.verificationTokenExpires = Date.now() + 10 * 60 * 1000;
-        await customer.save({ validateBeforeSave: false });
+    if (user && !user.emailVerified) {
+        user.verificationToken = Math.floor(100000 + Math.random() * 900000);
+        user.verificationTokenExpires = Date.now() + 10 * 60 * 1000;
+        await user.save({ validateBeforeSave: false });
 
-        const message = `Please verify your email by this numbers: ${token}`;
+        const message = `Please verify your email by this numbers: ${user.verificationToken}`;
         try {
-            await new Email(customer, message).sendWelcome();
+            await new Email(user, message).sendWelcome();
 
             return res.status(200).json({
                 status: 'success',
@@ -137,9 +137,9 @@ exports.signup = catchAsync(async (req, res, next) => {
             });
         } catch (err) {
             console.error('Error sending email:', err.message, err.stack);
-            customer.verificationToken = undefined;
-            customer.verificationTokenExpires = undefined;
-            await customer.save({ validateBeforeSave: false });
+            user.verificationToken = undefined;
+            user.verificationTokenExpires = undefined;
+            await user.save({ validateBeforeSave: false });
 
             return next(
                 new AppError('There was an error sending the email. Try again later!'),
@@ -148,7 +148,7 @@ exports.signup = catchAsync(async (req, res, next) => {
         }
     }
 
-    const newCustomer = await Customer.create({
+    const newUser = await User.create({
         name: req.body.name,
         email: req.body.email,
         password: req.body.password,
@@ -157,23 +157,23 @@ exports.signup = catchAsync(async (req, res, next) => {
         address: req.body.address,
         city: req.body.city
     });
-    newCustomer.verificationToken = Math.floor(100000 + Math.random() * 900000);
-    newCustomer.verificationTokenExpires = Date.now() + 10 * 60 * 1000;
-    await newCustomer.save({ validateBeforeSave: false })
-    console.log(newCustomer.verificationToken);
+    newUser.verificationToken = Math.floor(100000 + Math.random() * 900000);
+    newUser.verificationTokenExpires = Date.now() + 10 * 60 * 1000;
+    await newUser.save({ validateBeforeSave: false })
+    console.log(newUser.verificationToken);
 
-    const message = `Please verify your email by this numbers: ${newCustomer.verificationToken}`;
+    const message = `Please verify your email by this numbers: ${newUser.verificationToken}`;
     try {
-        await new Email(newCustomer, message).sendWelcome();
+        await new Email(newUser, message).sendWelcome();
         res.status(201).json({
             status: 'success',
             message: 'Verification email sent. Please check your inbox.'
         });
     } catch (err) {
         console.error('Error sending email:', err.message, err.stack);
-        newCustomer.verificationToken = undefined;
-        newCustomer.verificationTokenExpires = undefined;
-        await newCustomer.save({ validateBeforeSave: false });
+        newUser.verificationToken = undefined;
+        newUser.verificationTokenExpires = undefined;
+        await newUser.save({ validateBeforeSave: false });
 
         return next(
             new AppError('There was an error sending the email. Try again later!'),
@@ -185,22 +185,22 @@ exports.signup = catchAsync(async (req, res, next) => {
 
 exports.verifyEmail = catchAsync(async (req, res, next) => {
 
-    const customer = await Customer.findOne({
+    const user = await User.findOne({
         verificationToken: req.body.token,
         verificationTokenExpires: { $gt: Date.now() }
     });
 
-    if (!customer) {
+    if (!user) {
         return next(new AppError('Token is invalid or has expired', 400));
     }
 
-    customer.verificationToken = undefined;
-    customer.verificationTokenExpires = undefined;
-    customer.emailVerified = true;
-    await customer.save({ validateBeforeSave: false });
+    user.verificationToken = undefined;
+    user.verificationTokenExpires = undefined;
+    user.emailVerified = true;
+    await user.save({ validateBeforeSave: false });
 
 
-    createSendToken(customer, 200, res);
+    createSendToken(user, 200, res);
 });
 
 
@@ -212,27 +212,27 @@ exports.login = catchAsync(async (req, res, next) => {
         return next(new AppError('Please provide email and password!', 400));
     }
     // 2) Check if user exists && password is correct
-    const customer = await Customer.findOne({ email }).select('+password');
+    const user = await User.findOne({ email }).select('+password');
 
-    if (!customer || !(await customer.correctPassword(password, customer.password))) {
+    if (!user || !(await user.correctPassword(password, user.password))) {
         return next(new AppError('Incorrect email or password', 401));
     }
 
 
     // 3) Check if the email has been verified
-    if (!customer.emailVerified) {
+    if (!user.emailVerified) {
         return next(new AppError('Your email has not been verified. Please verify your email to log in.', 403));
     }
 
     // 3) If everything ok, send token to client
-    createSendToken(customer, 200, res);
+    createSendToken(user, 200, res);
 });
 
 
 
 exports.forgotPassword = catchAsync(async (req, res, next) => {
     // 1) Get user based on POSTed email
-    const user = await Customer.findOne({ email: req.body.email });
+    const user = await User.findOne({ email: req.body.email });
     if (!user) {
         return next(new AppError('There is no user with email address.', 404));
     }
@@ -272,7 +272,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
         .update(req.params.token)
         .digest('hex');
 
-    const user = await Customer.findOne({
+    const user = await User.findOne({
         passwordResetToken: hashedToken,
         passwordResetExpires: { $gt: Date.now() }
     });
@@ -318,7 +318,7 @@ exports.logout = catchAsync(async (req, res, next) => {
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
     // 1) Get user from collection
-    const user = await Customer.findById(req.user.id).select('+password');
+    const user = await User.findById(req.user.id).select('+password');
 
     // 2) Check if POSTed current password is correct
     if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {
