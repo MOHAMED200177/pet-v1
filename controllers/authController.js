@@ -122,18 +122,14 @@ exports.restrictTo = (...roles) => {
 exports.signup = catchAsync(async (req, res, next) => {
     const customer = await Customer.findOne({ email: req.body.email });
 
-    if (customer && !customer.verified) {
+    if (customer && !customer.emailVerified) {
         customer.verificationToken = Math.floor(100000 + Math.random() * 900000);
         customer.verificationTokenExpires = Date.now() + 10 * 60 * 1000;
         await customer.save({ validateBeforeSave: false });
 
         const message = `Please verify your email by this numbers: ${token}`;
         try {
-            await sendEmail({
-                email: customer.email,
-                subject: 'Your email verification token (valid for 10 minutes)',
-                message
-            });
+            await new Email(customer, message).sendWelcome();
 
             return res.status(200).json({
                 status: 'success',
@@ -157,7 +153,6 @@ exports.signup = catchAsync(async (req, res, next) => {
         email: req.body.email,
         password: req.body.password,
         passwordConfirm: req.body.passwordConfirm,
-        photo: req.body.photo,
         phone: req.body.phone,
         address: req.body.address,
         city: req.body.city
@@ -169,11 +164,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 
     const message = `Please verify your email by this numbers: ${newCustomer.verificationToken}`;
     try {
-        await sendEmail({
-            email: newCustomer.email,
-            subject: 'Your email verification token (valid for 10 minutes)',
-            message
-        });
+        await new Email(newCustomer, message).sendWelcome();
         res.status(201).json({
             status: 'success',
             message: 'Verification email sent. Please check your inbox.'

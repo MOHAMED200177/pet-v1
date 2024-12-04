@@ -11,12 +11,7 @@ router
         upload.array('imageUrl', 3),
         petController.createPet); // Apply the upload middleware
 
-
-
 router.use(authController.protect);
-
-
-
 
 router
     .route('/:id')

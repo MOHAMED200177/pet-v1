@@ -26,10 +26,11 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
+
 app.set('view engine', 'pug');
+app.use(express.json());
 app.set('views', path.join(__dirname, 'views'));
 
-app.use(express.json());
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
 app.use(helmet());
@@ -61,4 +62,5 @@ app.use('/api/v1/pets', catRoute);
 app.use('/api/v1/customers', customerRoute);
 app.use('/api/v1/adoptionForms', adoptionFormRoutes);
 app.use(globalErrorHandler);
+
 module.exports = app;
