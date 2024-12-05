@@ -57,6 +57,13 @@ app.use((req, res, next) => {
   next();
 });
 
+app.get('/passwordReset', (req, res) => {
+  res.render('email/passwordReset', {
+    title: 'Password Reset',
+    message: 'Please enter your new password.'
+  });
+});
+
 // 2) ROUTES
 app.use('/api/v1/pets', catRoute);
 app.use('/api/v1/customers', customerRoute);
