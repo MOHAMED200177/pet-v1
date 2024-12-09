@@ -55,9 +55,9 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 
 
 exports.getAllUsers = factory.getAll(Customer);
-exports.getUser = factory.getOne(Customer, {
+exports.getUser = factory.getOne(Customer, [{
     path: 'pet',
     select: 'name age gender description imageUrl '
-}
+}]
 );
 exports.deleteUser = factory.deleteOne(Customer);
