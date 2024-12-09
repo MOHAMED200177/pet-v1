@@ -45,10 +45,10 @@ const customerSchema = new mongoose.Schema({
             message: 'Please provide a valid phone number'
         },
     },
-    pet: {
+    pet: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Pet'
-    },
+    }],
     password: {
         type: String,
         required: [true, 'Please provide a password'],
