@@ -18,7 +18,7 @@ const customerSchema = new mongoose.Schema({
     },
     photo: {
         type: String,
-        default: '/images/man.jpg'
+        default: 'https://res.cloudinary.com/dgqfotpys/image/upload/v1736020548/pet/iw24r4t2hchwa4kkcisi.jpg'
     },
     role: {
         type: String,
