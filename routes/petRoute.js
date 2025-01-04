@@ -16,7 +16,7 @@ router.use(authController.protect);
 router
     .route('/:id')
     .get(petController.getPet)
-    .patch(petController.updatePet)
+    .patch(upload.array('imageUrl', 3), petController.updatePet)
     .delete(petController.deletePet);
 
 module.exports = router;
