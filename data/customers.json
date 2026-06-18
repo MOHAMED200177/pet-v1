@@ -1,0 +1,88 @@
+[
+  {
+    "_id": { "$oid": "65f1a0000000000000000001" },
+    "name": "Admin Petopia",
+    "email": "admin@petopia.com",
+    "photo": "https://res.cloudinary.com/dgqfotpys/image/upload/v1736020548/pet/iw24r4t2hchwa4kkcisi.jpg",
+    "role": "admin",
+    "address": "123 Shelter Street",
+    "city": "Cairo",
+    "phone": "01012345678",
+    "pet": [],
+    "password": "$2a$12$K8GpVwxLHqJ3z5Ym7NtXKuQpRs1W2vMnBdCeGfHiJkLmNoPqRsTu",
+    "passwordConfirm": null,
+    "emailVerified": true,
+    "active": true
+  },
+  {
+    "_id": { "$oid": "65f1a0000000000000000002" },
+    "name": "Sara Hassan",
+    "email": "sara@example.com",
+    "photo": "https://res.cloudinary.com/dgqfotpys/image/upload/v1736020548/pet/iw24r4t2hchwa4kkcisi.jpg",
+    "role": "user",
+    "address": "45 Nile Corniche",
+    "city": "Alexandria",
+    "phone": "01098765432",
+    "pet": [
+      { "$oid": "65f1b0000000000000000001" },
+      { "$oid": "65f1b0000000000000000002" }
+    ],
+    "password": "$2a$12$K8GpVwxLHqJ3z5Ym7NtXKuQpRs1W2vMnBdCeGfHiJkLmNoPqRsTu",
+    "passwordConfirm": null,
+    "emailVerified": true,
+    "active": true
+  },
+  {
+    "_id": { "$oid": "65f1a0000000000000000003" },
+    "name": "Mohamed Ali",
+    "email": "mohamed@example.com",
+    "photo": "https://res.cloudinary.com/dgqfotpys/image/upload/v1736020548/pet/iw24r4t2hchwa4kkcisi.jpg",
+    "role": "user",
+    "address": "78 Tahrir Square",
+    "city": "Cairo",
+    "phone": "01123456789",
+    "pet": [
+      { "$oid": "65f1b0000000000000000003" },
+      { "$oid": "65f1b0000000000000000004" }
+    ],
+    "password": "$2a$12$K8GpVwxLHqJ3z5Ym7NtXKuQpRs1W2vMnBdCeGfHiJkLmNoPqRsTu",
+    "passwordConfirm": null,
+    "emailVerified": true,
+    "active": true
+  },
+  {
+    "_id": { "$oid": "65f1a0000000000000000004" },
+    "name": "Layla Mostafa",
+    "email": "layla@example.com",
+    "photo": "https://res.cloudinary.com/dgqfotpys/image/upload/v1736020548/pet/iw24r4t2hchwa4kkcisi.jpg",
+    "role": "user",
+    "address": "12 Maadi Street",
+    "city": "Cairo",
+    "phone": "01234567890",
+    "pet": [
+      { "$oid": "65f1b0000000000000000005" }
+    ],
+    "password": "$2a$12$K8GpVwxLHqJ3z5Ym7NtXKuQpRs1W2vMnBdCeGfHiJkLmNoPqRsTu",
+    "passwordConfirm": null,
+    "emailVerified": true,
+    "active": true
+  },
+  {
+    "_id": { "$oid": "65f1a0000000000000000005" },
+    "name": "Omar Khaled",
+    "email": "omar@example.com",
+    "photo": "https://res.cloudinary.com/dgqfotpys/image/upload/v1736020548/pet/iw24r4t2hchwa4kkcisi.jpg",
+    "role": "user",
+    "address": "33 Heliopolis Ave",
+    "city": "Cairo",
+    "phone": "01567891234",
+    "pet": [
+      { "$oid": "65f1b0000000000000000006" },
+      { "$oid": "65f1b0000000000000000007" }
+    ],
+    "password": "$2a$12$K8GpVwxLHqJ3z5Ym7NtXKuQpRs1W2vMnBdCeGfHiJkLmNoPqRsTu",
+    "passwordConfirm": null,
+    "emailVerified": true,
+    "active": true
+  }
+]

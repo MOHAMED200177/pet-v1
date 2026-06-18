@@ -15,6 +15,13 @@ const reviewSchema = new mongoose.Schema(
       type: Date,
       default: Date.now
     },
+    // FIX: a review needs to know which pet it belongs to so it can be
+    // listed via GET /api/v1/pets/:petId/reviews (mergeParams).
+    pet: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Pet',
+      required: [true, 'Review must belong to a pet']
+    },
     user: {
       type: mongoose.Schema.ObjectId,
       ref: 'Customer',

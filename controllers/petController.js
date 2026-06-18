@@ -1,6 +1,7 @@
 const Pet = require('../modles/petModle');
 const Customer = require('../modles/CustomerModle');
 const catchAsync = require('./../utils/catchAsync');
+const AppError = require('./../utils/appError');
 const factory = require('./handlerFactory');
 
 
@@ -46,7 +47,7 @@ exports.createPet = catchAsync(async (req, res, next) => {
     res.status(201).json({
         status: 'success',
         data: {
-            newPet
+            data: newPet
         }
     });
 });
@@ -56,20 +57,23 @@ exports.getPet = factory.getOne(Pet, {
     path: 'user',
     select: 'name email'
 });
-// exports.updatePet = factory.updateOne(Pet);
 
+// FIX: previously referenced an undefined `Model`, which threw a
+// ReferenceError on every PATCH /api/v1/pets/:id request. Now correctly
+// updates the Pet document and, if new images were uploaded, replaces
+// imageUrl with the newly uploaded files; otherwise leaves existing images
+// untouched.
 exports.updatePet = catchAsync(async (req, res, next) => {
-    // allowed to be updated
-    // const filteredBody = filterObj(req.body, "name", "photo", "address", "city", "phone");
+    const updateData = { ...req.body };
 
-    let imageUrls = [];
     if (req.files && req.files.length > 0) {
-        imageUrls = req.files.map(file => file.path); // Cloudinary stores URL in path
+        updateData.imageUrl = req.files.map(file => file.path);
+    } else {
+        // don't overwrite existing images with an empty array if none were sent
+        delete updateData.imageUrl;
     }
 
-    req.body.imageUrl = imageUrls;
-    // update data
-    const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
+    const doc = await Pet.findByIdAndUpdate(req.params.id, updateData, {
         new: true,
         runValidators: true
     });

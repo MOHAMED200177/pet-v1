@@ -1,17 +1,34 @@
 extends baseEmail
 
 block content
-  p Hi #{firstName},
-  p Welcome to Natours, we're glad to have you 🎉🙏
-  p We're all a big familiy here, so make sure to upload your user photo so we get to know you a bit better!
-  table.btn.btn-primary(role='presentation', border='0', cellpadding='0', cellspacing='0')
+  //- Greeting
+  h1 Hi #{firstName}, welcome to Petopia! 🐾
+  p
+    | You're one step away from finding your new best friend.
+    | Enter the verification code below to activate your account.
+
+  //- OTP Token Box
+  .token-box
+    p.token-expiry(style='margin-bottom:12px; font-size:13px; color:#6B7C72;') Your verification code
+    .token-code= url
+    p.token-expiry This code expires in&nbsp;
+      strong 10 minutes
+      | . Do not share it with anyone.
+
+  hr.divider
+
+  //- What's next
+  p(style='color:#2B3F32; font-weight:600; margin-bottom:8px;') What you can do on Petopia:
+  table(role='presentation', border='0', cellpadding='0', cellspacing='0', width='100%')
     tbody
       tr
-        td(align='left')
-          table(role='presentation', border='0', cellpadding='0', cellspacing='0')
-            tbody
-              tr
-                td
-                  a(href=`${url}`, target='_blank') Upload user photo
-  p If you need any help with booking your next tour, please don't hesitate to contact me!
-  p - Jonas Schmedtmann, CEO
+        td(style='padding:6px 0; font-size:14px; color:#1F2D24;') 🔍&nbsp; Browse hundreds of cats & dogs looking for a home
+      tr
+        td(style='padding:6px 0; font-size:14px; color:#1F2D24;') 📋&nbsp; Submit an adoption application in minutes
+      tr
+        td(style='padding:6px 0; font-size:14px; color:#1F2D24;') 🏠&nbsp; List a pet you need to rehome
+
+  hr.divider
+
+  .warning
+    p ⚠️ If you didn't create a Petopia account, you can safely ignore this email.

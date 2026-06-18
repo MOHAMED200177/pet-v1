@@ -7,44 +7,40 @@ module.exports = class Email {
     this.to = user.email;
     this.firstName = user.name.split(' ')[0];
     this.url = url;
-    this.from = `Mohamed Elafandy<${process.env.EMAIL_USERNAME}>`;
+    this.from = `Mohamed Elafandy <${process.env.MAIL_USER}>`;
   }
-  // 1) Create a transporter
+
   newTransport() {
-    if (process.env.NODE_ENV === 'production') {
-      return nodemailer.createTransport({
-        service: 'gmail',
-        host: process.env.EMAIL_HOST,
-        port: process.env.EMAIL_PORT,
-        secure: false,
-        auth: {
-          user: process.env.EMAIL_USERNAME,
-          pass: process.env.EMAIL_PASSWORD
-        }
-      })
-    }
+    return nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_PASS,
+      },
+    });
   }
 
   async send(template, subject) {
-    // 1) Render HTML based on a pug template
-    const html = pug.renderFile(`${__dirname}/../views/email/${template}.pug`, {
-      firstName: this.firstName,
-      url: this.url,
-      subject
-    });
+    const html = pug.renderFile(
+      `${__dirname}/../views/email/${template}.pug`,
+      {
+        firstName: this.firstName,
+        url: this.url,
+        subject,
+      },
+    );
 
-    // 2) Define email options
     const mailOptions = {
       from: this.from,
       to: this.to,
       subject,
       html,
-      text: htmlToText(html)
+      text: htmlToText(html),
     };
 
-    // 3) Create a transport and send email
     await this.newTransport().sendMail(mailOptions);
   }
+
   async sendWelcome() {
     await this.send('welcome', 'Welcome to Family!');
   }
@@ -52,7 +48,7 @@ module.exports = class Email {
   async sendPasswordReset() {
     await this.send(
       'passwordReset',
-      'Your password reset token (valid for only 10 minutes)'
+      'Your password reset token (valid for only 10 minutes)',
     );
   }
 };

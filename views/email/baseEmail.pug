@@ -1,14 +1,12 @@
-//- Email template adapted from https://github.com/leemunroe/responsive-html-email-template
-//- Converted from HTML using https://html2pug.now.sh/
-
 doctype html
-html
+html(lang='en')
   head
-    meta(name='viewport', content='width=device-width')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
     meta(http-equiv='Content-Type', content='text/html; charset=UTF-8')
+    meta(name='color-scheme', content='light')
     title= subject
-
     include _style
+
   body
     table.body(role='presentation', border='0', cellpadding='0', cellspacing='0')
       tbody
@@ -16,28 +14,27 @@ html
           td
           td.container
             .content
-              // START CENTERED WHITE CONTAINER
-              table.main(role='presentation')
 
-                // START MAIN AREA
+              //- ── CARD ──────────────────────────────────────
+              table.main(role='presentation')
                 tbody
+
+                  //- Header
+                  tr
+                    td.header-band
+                      p.logo-text 🐾&nbsp; Petopia
+                      
+                  //- Body content
                   tr
                     td.wrapper
-                      table(role='presentation', border='0', cellpadding='0', cellspacing='0')
-                        tbody
-                          tr
-                            td
-                              // CONTENT
-                              block content
+                      block content
 
-              // START FOOTER
+              //- ── FOOTER ─────────────────────────────────────
               .footer
-                table(role='presentation', border='0', cellpadding='0', cellspacing='0')
-                  tbody
-                    //- tr
-                    //-   td.content-block
-                    //-     //- span.apple-link Natours Inc, 123 Nowhere Road, San Francisco CA 99999
-                    //-     br
-                    //-     |  Don't like these emails? 
-                    //-     a(href='#') Unsubscribe
-          //- td  
+                p © #{new Date().getFullYear()} Petopia. All rights reserved.
+                p
+                  | This email was sent to&nbsp;
+                  strong= to
+                  | . If you didn't request this, please ignore it.
+
+          td

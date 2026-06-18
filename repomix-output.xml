@@ -1,0 +1,2113 @@
+This file is a merged representation of a subset of the codebase, containing files not matching ignore patterns, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching these patterns are excluded: node_modules dist build .next
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+.babelrc
+.eslintrc.json
+.gitignore
+.prettierrc
+app.js
+config/cloudinaryConfig.js
+controllers/adoptionFormController.js
+controllers/authController.js
+controllers/CustomerController.js
+controllers/errorController.js
+controllers/handlerFactory.js
+controllers/petController.js
+controllers/reviewController.js
+index.html
+index.js
+modles/CustomerModle.js
+modles/formModle.js
+modles/petModle.js
+modles/reviewModel.js
+package.json
+routes/adoptionFormRoutes.js
+routes/CustomerRoute.js
+routes/petRoute.js
+routes/reviewRoutes.js
+utils/apiFeatures.js
+utils/appError.js
+utils/catchAsync.js
+utils/email.js
+utils/multer.js
+views/email/_style.pug
+views/email/baseEmail.pug
+views/email/passwordReset.pug
+views/email/welcome.pug
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path=".babelrc">
+{
+    "presets": [
+        [
+            "env",
+            {
+                "exclude": [
+                    "transform-regenerator"
+                ]
+            }
+        ]
+    ]
+}
+</file>
+
+<file path=".eslintrc.json">
+{
+  "extends": ["airbnb", "prettier", "plugin:node/recommended"],
+  "plugins": ["prettier"],
+  "rules": {
+    "prettier/prettier": "error",
+    "spaced-comment": "off",
+    "no-console": "warn",
+    "consistent-return": "off",
+    "func-names": "off",
+    "object-shorthand": "off",
+    "no-process-exit": "off",
+    "no-param-reassign": "off",
+    "no-return-await": "off",
+    "no-underscore-dangle": "off",
+    "class-methods-use-this": "off",
+    "prefer-destructuring": ["error", { "object": true, "array": false }],
+    "no-unused-vars": ["error", { "argsIgnorePattern": "req|res|next|val" }]
+  }
+}
+</file>
+
+<file path=".gitignore">
+node_modules
+.env
+.codegpt
+</file>
+
+<file path=".prettierrc">
+{
+  "singleQuote": true
+}
+</file>
+
+<file path="app.js">
+const express = require('express');
+const morgan = require('morgan');
+const path = require('path');
+const cors = require('cors');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const cookieParser = require('cookie-parser');
+
+const catRoute = require('./routes/petRoute');
+const customerRoute = require('./routes/CustomerRoute');
+const adoptionFormRoutes = require('./routes/adoptionFormRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
+const globalErrorHandler = require('./controllers/errorController');
+
+const app = express();
+
+app.use(cookieParser());
+app.use(cors({
+  origin: ['https://petopia-one.vercel.app', 'http://localhost:5173'],
+  credentials: true,
+}));
+
+// 1) MIDDLEWARES
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
+
+app.set('view engine', 'pug');
+app.use(express.json());
+app.set('views', path.join(__dirname, 'views'));
+
+app.use('/public', express.static(path.join(__dirname, 'public')));
+
+app.use(helmet());
+
+const limiter = rateLimit({
+  max: 100,
+  windowMs: 60 * 60 * 1000,
+  message: 'Too many requests from this IP, please try again in an hour!',
+});
+// FIX: was app.use('api', limiter) — missing leading slash meant this never
+// matched any route and the limiter was inert.
+app.use('/api', limiter);
+
+
+app.use((req, res, next) => {
+  console.log('Hello from the middleware 👋');
+  next();
+});
+
+app.use(mongoSanitize());
+
+app.use(xss());
+
+app.use((req, res, next) => {
+  req.requestTime = new Date().toISOString();
+  next();
+});
+
+app.get('/passwordReset', (req, res) => {
+  res.render('email/passwordReset', {
+    title: 'Password Reset',
+    message: 'Please enter your new password.'
+  });
+});
+
+// 2) ROUTES
+app.use('/api/v1/pets', catRoute);
+// FIX: reviewRoutes existed but was never mounted, so /reviews was
+// completely unreachable. Mounted nested under pets (mergeParams gives
+// reviewController access to req.params.petId) and flat for direct
+// review access.
+app.use('/api/v1/pets/:petId/reviews', reviewRoutes);
+app.use('/api/v1/reviews', reviewRoutes);
+app.use('/api/v1/customers', customerRoute);
+app.use('/api/v1/adoptionForms', adoptionFormRoutes);
+app.use(globalErrorHandler);
+
+module.exports = app;
+</file>
+
+<file path="config/cloudinaryConfig.js">
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+module.exports = cloudinary;
+</file>
+
+<file path="controllers/adoptionFormController.js">
+const AdoptionForm = require('./../modles/formModle');
+const factory = require('./handlerFactory');
+
+exports.createAdoptionForm = factory.createOne(AdoptionForm);
+exports.getAllAdoptionForms = factory.getAll(AdoptionForm);
+exports.getAdoptionForm = factory.getOne(AdoptionForm);
+exports.updateAdoptionForm = factory.updateOne(AdoptionForm);
+exports.deleteAdoptionForm = factory.deleteOne(AdoptionForm);
+</file>
+
+<file path="controllers/authController.js">
+const { promisify } = require('util');
+const User = require('../modles/CustomerModle');
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+const catchAsync = require('./../utils/catchAsync');
+const AppError = require('./../utils/appError');
+const Email = require('./../utils/email');
+
+
+const signToken = id => {
+    return jwt.sign({ id }, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_EXPIRES_IN
+    });
+};
+const createSendToken = (user, statusCode, res) => {
+    const token = signToken(user._id);
+    const cookieOptions = {
+        expires: new Date(
+            Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+        ),
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'none'
+    };
+
+    if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+
+    res.cookie("jwt", token, cookieOptions);
+
+    user.password = undefined;
+
+    res.status(statusCode).json({
+        status: 'success',
+        token,
+        data: {
+            user
+        }
+    });
+}
+
+exports.protect = catchAsync(async (req, res, next) => {
+    let token;
+    // 1) Getting token and check of it's there
+    if (req.cookies && req.cookies.jwt) {
+        token = req.cookies.jwt;
+    } else {
+        return next(new AppError('You are not logged in! Please log in to get access.', 401));
+    }
+
+    // 2) Verification token
+    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+    // 3) Check if user still exists
+    const currentUser = await User.findById(decoded.id);
+    if (!currentUser) {
+        return next(
+            new AppError(
+                'The user belonging to this token does no longer exist.',
+                401
+            )
+        );
+    }
+
+    if (currentUser.tokenInvalidationTime && currentUser.tokenInvalidationTime > decoded.iat * 1000) {
+        return next(new AppError('This token is no longer valid. Please log in again.', 401));
+    }
+
+    // GRANT ACCESS TO PROTECTED ROUTE
+    req.user = currentUser;
+    res.locals.user = currentUser;
+    next();
+}
+);
+
+
+
+// Only for rendered pages, no errors!
+exports.isLoggedIn = async (req, res, next) => {
+    if (req.cookies.jwt) {
+        try {
+            // 1) verify token
+            const decoded = await promisify(jwt.verify)(
+                req.cookies.jwt,
+                process.env.JWT_SECRET
+            );
+
+            // 2) Check if user still exists
+            const currentUser = await User.findById(decoded.id);
+            if (!currentUser) {
+                return next();
+            }
+
+            // 3) Check if user changed password after the token was issued
+            if (currentUser.changedPasswordAfter(decoded.iat)) {
+                return next();
+            }
+
+            // THERE IS A LOGGED IN USER
+            res.locals.user = currentUser;
+            return next();
+        } catch (err) {
+            return next();
+        }
+    }
+    next();
+};
+
+
+
+exports.restrictTo = (...roles) => {
+    return (req, res, next) => {
+        // roles ['admin', 'lead-guide']. role='user'
+        if (!roles.includes(req.user.role)) {
+            return next(
+                new AppError('You do not have permission to perform this action', 403)
+            );
+        }
+
+        next();
+    };
+};
+
+exports.signup = catchAsync(async (req, res, next) => {
+    const user = await User.findOne({ email: req.body.email });
+
+    if (user && !user.emailVerified) {
+        user.verificationToken = Math.floor(100000 + Math.random() * 900000);
+        user.verificationTokenExpires = Date.now() + 10 * 60 * 1000;
+        await user.save({ validateBeforeSave: false });
+
+        const message = `Please verify your email by this numbers: ${user.verificationToken}`;
+        try {
+            await new Email(user, message).sendWelcome();
+
+            return res.status(200).json({
+                status: 'success',
+                message: 'Verification email sent again. Please check your inbox.'
+            });
+        } catch (err) {
+            console.error('Error sending email:', err.message, err.stack);
+            user.verificationToken = undefined;
+            user.verificationTokenExpires = undefined;
+            await user.save({ validateBeforeSave: false });
+
+            return next(
+                new AppError('There was an error sending the email. Try again later!'),
+                500
+            );
+        }
+    }
+
+    const newUser = await User.create({
+        name: req.body.name,
+        email: req.body.email,
+        password: req.body.password,
+        passwordConfirm: req.body.passwordConfirm,
+        phone: req.body.phone,
+        address: req.body.address,
+        city: req.body.city
+    });
+    newUser.verificationToken = Math.floor(100000 + Math.random() * 900000);
+    newUser.verificationTokenExpires = Date.now() + 10 * 60 * 1000;
+    await newUser.save({ validateBeforeSave: false })
+    console.log(newUser.verificationToken);
+
+    const message = `Please verify your email by this numbers: ${newUser.verificationToken}`;
+    try {
+        await new Email(newUser, message).sendWelcome();
+        res.status(201).json({
+            status: 'success',
+            message: 'Verification email sent. Please check your inbox.'
+        });
+    } catch (err) {
+        console.error('Error sending email:', err.message, err.stack);
+        newUser.verificationToken = undefined;
+        newUser.verificationTokenExpires = undefined;
+        await newUser.save({ validateBeforeSave: false });
+
+        return next(
+            new AppError('There was an error sending the email. Try again later!'),
+            500
+        );
+    }
+});
+
+
+exports.verifyEmail = catchAsync(async (req, res, next) => {
+
+    const user = await User.findOne({
+        verificationToken: req.body.token,
+        verificationTokenExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+        return next(new AppError('Token is invalid or has expired', 400));
+    }
+
+    user.verificationToken = undefined;
+    user.verificationTokenExpires = undefined;
+    user.emailVerified = true;
+    await user.save({ validateBeforeSave: false });
+
+
+    createSendToken(user, 200, res);
+});
+
+
+exports.login = catchAsync(async (req, res, next) => {
+    const { email, password } = req.body;
+
+    // 1) Check if email and password exist
+    if (!email || !password) {
+        return next(new AppError('Please provide email and password!', 400));
+    }
+    // 2) Check if user exists && password is correct
+    const user = await User.findOne({ email }).select('+password');
+
+    if (!user || !(await user.correctPassword(password, user.password))) {
+        return next(new AppError('Incorrect email or password', 401));
+    }
+
+
+    // 3) Check if the email has been verified
+    if (!user.emailVerified) {
+        return next(new AppError('Your email has not been verified. Please verify your email to log in.', 403));
+    }
+
+    // 3) If everything ok, send token to client
+    createSendToken(user, 200, res);
+});
+
+
+
+exports.forgotPassword = catchAsync(async (req, res, next) => {
+    // 1) Get user based on POSTed email
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) {
+        return next(new AppError('There is no user with email address.', 404));
+    }
+
+    // 2) Generate the random reset token
+    const resetToken = user.createPasswordResetToken();
+    await user.save({ validateBeforeSave: false });
+
+    // 3) Send it to user's email
+
+    try {
+        const resetURL = `https://petopia-one.vercel.app/reset-password/${resetToken}`;
+        await new Email(user, resetURL).sendPasswordReset();
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Token sent to email!'
+        });
+    } catch (err) {
+        console.error('Error sending email:', err.message, err.stack);
+        user.passwordResetToken = undefined;
+        user.passwordResetExpires = undefined;
+        await user.save({ validateBeforeSave: false });
+
+        return next(
+            new AppError('There was an error sending the email. Try again later!'),
+            500
+        );
+    }
+});
+
+
+exports.resetPassword = catchAsync(async (req, res, next) => {
+    // 1) Get user based on the token
+    const hashedToken = crypto
+        .createHash('sha256')
+        .update(req.params.token)
+        .digest('hex');
+
+    const user = await User.findOne({
+        passwordResetToken: hashedToken,
+        passwordResetExpires: { $gt: Date.now() }
+    });
+
+    // 2) If token has not expired, and there is user, set the new password
+    if (!user) {
+        return next(new AppError('Token is invalid or has expired', 400));
+    }
+    user.password = req.body.password;
+    user.passwordConfirm = req.body.passwordConfirm;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+
+    // 3) Update changedPasswordAt property for the user
+    // 4) Log the user in, send JWT
+    createSendToken(user, 200, res);
+});
+
+
+
+exports.logout = catchAsync(async (req, res, next) => {
+    const user = req.user;
+    if (!user) {
+        return next(new AppError('User not found', 404));
+    }
+
+    user.tokenInvalidationTime = Date.now();
+    await user.save({ validateBeforeSave: false });
+
+    res.cookie('jwt', 'loggedout', {
+        expires: new Date(Date.now() + 10 * 1000),
+        httpOnly: true
+    });
+    res.status(200).json({
+        status: 'success',
+        message: 'You have been logged out!'
+    });
+});
+
+
+
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+    // 1) Get user from collection
+    const user = await User.findById(req.user.id).select('+password');
+
+    // 2) Check if POSTed current password is correct
+    if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {
+        return next(new AppError('Your current password is wrong.', 401));
+    }
+
+    // 3) If so, update password
+    user.password = req.body.password;
+    user.passwordConfirm = req.body.passwordConfirm;
+    await user.save();
+    // User.findByIdAndUpdate will NOT work as intended!
+
+    // 4) Log user in, send JWT
+    createSendToken(user, 200, res);
+});
+</file>
+
+<file path="controllers/CustomerController.js">
+const Customer = require('../modles/CustomerModle');
+const catchAsync = require('./../utils/catchAsync');
+const AppError = require('./../utils/appError');
+const factory = require('./handlerFactory');
+const { isValidObjectId } = require('mongoose');
+
+const filterObj = (obj, ...allowedFields) => {
+    const newObj = {};
+    Object.keys(obj).forEach(el => {
+        if (allowedFields.includes(el)) newObj[el] = obj[el];
+    });
+    return newObj;
+};
+
+exports.getMe = (req, res, next) => {
+    if (!isValidObjectId(req.user.id)) {
+        return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+    req.params.id = req.user.id;
+    next();
+};
+
+exports.updateMe = catchAsync(async (req, res, next) => {
+    // 1- error if posted password data
+    if (req.body.password || req.body.passwordConfirm) {
+        return next(new AppError('This route is not for password updates. Please use /updateMyPassword.', 400));
+    }
+
+    // allowed to be updated
+    const filteredBody = filterObj(req.body, "name", "photo", "address", "city", "phone");
+
+    if (req.file) {
+        filteredBody.photo = req.file.path;
+    }
+
+    // update data
+    const updatedUser = await Customer.findByIdAndUpdate(req.user.id, filteredBody, {
+        new: true,
+        runValidators: true
+    });
+
+    // Check if user was found and updated
+    if (!updatedUser) {
+        return next(new AppError('No user found with that ID.', 404));
+    }
+
+    res.status(200).json({
+        status: 'success',
+        data: {
+            user: updatedUser
+        }
+    });
+});
+
+
+
+exports.getAllUsers = factory.getAll(Customer);
+exports.getUser = factory.getOne(Customer, {
+    path: 'pet',
+    select: 'name age gender description imageUrl '
+}
+);
+exports.deleteUser = factory.deleteOne(Customer);
+</file>
+
+<file path="controllers/errorController.js">
+const AppError = require('./../utils/appError');
+
+const handleCastErrorDB = err => {
+  const message = `Invalid ${err.path}: ${err.value}.`;
+  return new AppError(message, 400);
+};
+
+const handleDuplicateFieldsDB = err => {
+
+  const field = Object.keys(err.keyValue)[0];
+  const value = err.keyValue[field];
+
+  const message = `Duplicate field value: ${value}. Please use another value!`;
+  return new AppError(message, 400);
+};
+
+const handleValidationErrorDB = err => {
+  const errors = Object.values(err.errors).map(el => el.message);
+
+  const message = `Invalid input data. ${errors.join('. ')}`;
+  return new AppError(message, 400);
+};
+
+const handleJWTError = () =>
+  new AppError('Invalid token. Please log in again!', 401);
+
+const handleJWTExpiredError = () =>
+  new AppError('Your token has expired! Please log in again.', 401);
+
+const sendErrorDev = (err, req, res) => {
+  // A) API
+  if (req.originalUrl.startsWith('/api')) {
+    return res.status(err.statusCode).json({
+      status: err.status,
+      error: err,
+      message: err.message,
+      stack: err.stack
+    });
+  }
+
+  // B) RENDERED WEBSITE
+  console.error('ERROR 💥', err);
+  return res.status(err.statusCode).render('error', {
+    title: 'Something went wrong!',
+    msg: err.message
+  });
+};
+
+const sendErrorProd = (err, req, res) => {
+  // A) API
+  if (req.originalUrl.startsWith('/api')) {
+    // A) Operational, trusted error: send message to client
+    if (err.isOperational) {
+      return res.status(err.statusCode).json({
+        status: err.status,
+        message: err.message
+      });
+    }
+    // B) Programming or other unknown error: don't leak error details
+    // 1) Log error
+    console.error('ERROR 💥', err);
+    // 2) Send generic message
+    return res.status(500).json({
+      status: 'error',
+      message: 'Something went very wrong!'
+    });
+  }
+
+  // B) RENDERED WEBSITE
+  // A) Operational, trusted error: send message to client
+  if (err.isOperational) {
+    return res.status(err.statusCode).render('error', {
+      title: 'Something went wrong!',
+      msg: err.message
+    });
+  }
+  // B) Programming or other unknown error: don't leak error details
+  // 1) Log error
+  console.error('ERROR 💥', err);
+  // 2) Send generic message
+  return res.status(err.statusCode).render('error', {
+    title: 'Something went wrong!',
+    msg: 'Please try again later.'
+  });
+};
+
+module.exports = (err, req, res, next) => {
+  // console.log(err.stack);
+
+  err.statusCode = err.statusCode || 500;
+  err.status = err.status || 'error';
+
+  if (process.env.NODE_ENV === 'development') {
+    sendErrorDev(err, req, res);
+  } else if (process.env.NODE_ENV === 'production') {
+    let error = { ...err };
+    error.message = err.message;
+
+    if (error.name === 'CastError') error = handleCastErrorDB(error);
+    if (error.code === 11000) error = handleDuplicateFieldsDB(error);
+    if (error.name === 'ValidationError')
+      error = handleValidationErrorDB(error);
+    if (error.name === 'JsonWebTokenError') error = handleJWTError();
+    if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
+
+    sendErrorProd(error, req, res);
+  }
+};
+</file>
+
+<file path="controllers/handlerFactory.js">
+const catchAsync = require('./../utils/catchAsync');
+const AppError = require('./../utils/appError');
+const APIFeatures = require('./../utils/apiFeatures');
+
+exports.deleteOne = Model =>
+  catchAsync(async (req, res, next) => {
+    const doc = await Model.findByIdAndDelete(req.params.id);
+
+    if (!doc) {
+      return next(new AppError('No document found with that ID', 404));
+    }
+
+    res.status(204).json({
+      status: 'success',
+      data: null
+    });
+  });
+
+exports.updateOne = Model =>
+  catchAsync(async (req, res, next) => {
+    const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true
+    });
+
+    if (!doc) {
+      return next(new AppError('No document found with that ID', 404));
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        data: doc
+      }
+    });
+  });
+
+exports.createOne = Model =>
+  catchAsync(async (req, res, next) => {
+    const doc = await Model.create(req.body);
+
+    res.status(201).json({
+      status: 'success',
+      data: {
+        data: doc
+      }
+    });
+  });
+
+exports.getOne = (Model, popOptions) =>
+  catchAsync(async (req, res, next) => {
+    let query = Model.findById(req.params.id);
+    if (popOptions) query = query.populate(popOptions);
+    const doc = await query;
+
+    if (!doc) {
+      return next(new AppError('No document found with that ID', 404));
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        data: doc
+      }
+    });
+  });
+
+exports.getAll = Model =>
+  catchAsync(async (req, res, next) => {
+    // To allow for nested GET reviews on pet (hack)
+    let filter = {};
+    if (req.params.petId) filter = { pet: req.params.petId };
+
+    const features = new APIFeatures(Model.find(filter), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+    // const doc = await features.query.explain();
+    const doc = await features.query;
+
+    // SEND RESPONSE
+    res.status(200).json({
+      status: 'success',
+      results: doc.length,
+      paginate: Math.ceil(doc.length / 10),
+      data: {
+        data: doc
+      }
+    });
+  });
+</file>
+
+<file path="controllers/petController.js">
+const Pet = require('../modles/petModle');
+const Customer = require('../modles/CustomerModle');
+const catchAsync = require('./../utils/catchAsync');
+const AppError = require('./../utils/appError');
+const factory = require('./handlerFactory');
+
+
+exports.createPet = catchAsync(async (req, res, next) => {
+    let imageUrls = [];
+    if (req.files && req.files.length > 0) {
+        imageUrls = req.files.map(file => file.path); // Cloudinary stores URL in path
+    }
+
+    const data = {
+        name: req.body.name,
+        age: req.body.age,
+        type: req.body.type,
+        breed: req.body.breed,
+        description: req.body.description,
+        imageUrl: imageUrls,
+        typeWeight: req.body.typeWeight,
+        weight: req.body.weight,
+        gender: req.body.gender,
+        color: req.body.color,
+        email: req.body.email,
+        phone: req.body.phone,
+        address: req.body.address,
+        city: req.body.city,
+        user: req.user._id,
+        dateAdded: Date.now()
+    };
+
+    // Create the new pet document
+    const newPet = await Pet.create(data);
+
+    // Update the customer and push the new pet's _id to the 'pet' array
+    const updatedCustomer = await Customer.findByIdAndUpdate(
+        req.user.id,
+        { $push: { pet: newPet._id } },
+        { new: true, runValidators: true }
+    );
+
+    if (!updatedCustomer) {
+        return next(new AppError('No customer found with that ID', 404));
+    }
+
+    res.status(201).json({
+        status: 'success',
+        data: {
+            data: newPet
+        }
+    });
+});
+
+exports.getAllPets = factory.getAll(Pet);
+exports.getPet = factory.getOne(Pet, {
+    path: 'user',
+    select: 'name email'
+});
+
+// FIX: previously referenced an undefined `Model`, which threw a
+// ReferenceError on every PATCH /api/v1/pets/:id request. Now correctly
+// updates the Pet document and, if new images were uploaded, replaces
+// imageUrl with the newly uploaded files; otherwise leaves existing images
+// untouched.
+exports.updatePet = catchAsync(async (req, res, next) => {
+    const updateData = { ...req.body };
+
+    if (req.files && req.files.length > 0) {
+        updateData.imageUrl = req.files.map(file => file.path);
+    } else {
+        // don't overwrite existing images with an empty array if none were sent
+        delete updateData.imageUrl;
+    }
+
+    const doc = await Pet.findByIdAndUpdate(req.params.id, updateData, {
+        new: true,
+        runValidators: true
+    });
+
+    if (!doc) {
+        return next(new AppError('No document found with that ID', 404));
+    }
+
+    res.status(200).json({
+        status: 'success',
+        data: {
+            data: doc
+        }
+    });
+});
+
+exports.deletePet = factory.deleteOne(Pet);
+</file>
+
+<file path="controllers/reviewController.js">
+const Review = require('../modles/reviewModel');
+const factory = require('./handlerFactory');
+
+// FIX: previously createReview was just factory.createOne(Review), which
+// required the client to know and send the Mongo ObjectIds for `pet` and
+// `user`. Now both are derived from the request, matching the nested route
+// /api/v1/pets/:petId/reviews and the logged-in user.
+exports.setPetUserIds = (req, res, next) => {
+  if (!req.body.pet) req.body.pet = req.params.petId;
+  if (!req.body.user) req.body.user = req.user.id;
+  next();
+};
+
+exports.getAllReviews = factory.getAll(Review);
+exports.getReview = factory.getOne(Review);
+exports.createReview = factory.createOne(Review);
+exports.updateReview = factory.updateOne(Review);
+exports.deleteReview = factory.deleteOne(Review);
+</file>
+
+<file path="index.html">
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+    <div id="chat">
+        <input id="messageInput" autocomplete="off" /><button onclick="sendMessage()">Send</button>
+        <ul id="messages"></ul>
+    </div>
+    <script>
+        const socket = io();
+
+        socket.on('message', (message) => {
+            const messages = document.getElementById('messages');
+            const messageItem = document.createElement('li');
+            messageItem.textContent = `${message.user}: ${message.text}`;
+            messages.appendChild(messageItem);
+        });
+
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value;
+            socket.emit('sendMessage', message, () => {
+                messageInput.value = '';
+            });
+        }
+
+        socket.emit('join', { username: 'User', room: 'room' });
+    </script>
+</body>
+
+</html>
+</file>
+
+<file path="index.js">
+const dotenv = require('dotenv');
+dotenv.config({ path: './.env' });
+
+const mongoose = require('mongoose');
+const app = require('./app');
+const http = require('http');
+const socketio = require('socket.io');
+
+const DB = process.env.DATABASE_PASS;
+
+console.log('DATABASE_PASS:', process.env.DATABASE_PASS);
+
+mongoose.connect(DB, { useNewUrlParser: true, useCreateIndex: true, useFindAndModify: false })
+  .then(() => console.log('DB connection successful'));
+
+const server = http.createServer(app);
+const io = socketio(server, {
+  cors: {
+    origin: '*',
+  }
+});
+
+const port = process.env.PORT || 5000;
+server.listen(port, () => {
+  console.log(`App running on port ${port}...`);
+});
+</file>
+
+<file path="modles/CustomerModle.js">
+const crypto = require('crypto');
+const mongoose = require('mongoose');
+const validator = require('validator');
+const bcrypt = require('bcryptjs');
+
+const customerSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        unique: true,
+        required: [true, 'Please tell us your name!']
+    },
+    email: {
+        type: String,
+        required: [true, 'Please provide your email'],
+        unique: true,
+        lowercase: true,
+        validate: [validator.isEmail, 'Please provide a valid email']
+    },
+    photo: {
+        type: String,
+        default: 'https://res.cloudinary.com/dgqfotpys/image/upload/v1736020548/pet/iw24r4t2hchwa4kkcisi.jpg'
+    },
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user'
+    },
+    address: {
+        type: String,
+        required: [true, 'Please provide an address'],
+        trim: true
+    },
+    city: {
+        type: String,
+        required: [true, 'Please provide a city'],
+        trim: true
+    },
+    phone: {
+        type: Number,
+        required: [true, 'Please provide a phone number'],
+        validate: {
+            validator: function (val) {
+                return /\d{10,15}/.test(val);
+            },
+            message: 'Please provide a valid phone number'
+        },
+    },
+    pet: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Pet'
+    }],
+    password: {
+        type: String,
+        required: [true, 'Please provide a password'],
+        minlength: 8,
+        select: false
+    },
+    passwordConfirm: {
+        type: String,
+        required: [true, 'Please confirm your password'],
+        validate: {
+            // This only works on CREATE and SAVE!!!
+            validator: function (el) {
+                return el === this.password;
+            },
+            message: 'Passwords are not the same!'
+        }
+    },
+    passwordChangedAt: Date,
+    passwordResetToken: {
+        type: String,
+        select: false
+    },
+    passwordResetExpires: Date,
+    active: {
+        type: Boolean,
+        default: true,
+        select: false
+    },
+    emailVerified: {
+        type: Boolean,
+        default: false,
+    },
+    verificationToken: String,
+    verificationTokenExpires: Date,
+    tokenInvalidationTime: Date
+});
+
+customerSchema.pre('save', async function (next) {
+    // Only run this function if password was actually modified
+    if (!this.isModified('password')) return next();
+
+    // Hash the password with cost of 12
+    this.password = await bcrypt.hash(this.password, 12);
+
+    // Delete passwordConfirm field
+    this.passwordConfirm = undefined;
+    next();
+});
+
+customerSchema.pre('save', function (next) {
+    if (!this.isModified('password') || this.isNew) return next();
+
+    this.tokenInvalidationTime = Date.now() - 1000;
+    next();
+});
+
+customerSchema.pre(/^find/, function (next) {
+    // this points to the current query
+    this.find({ active: { $ne: false } });
+    next();
+});
+
+customerSchema.methods.correctPassword = async function (
+    candidatePassword,
+    userPassword
+) {
+    return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+customerSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+    if (this.passwordChangedAt) {
+        const changedTimestamp = parseInt(
+            this.passwordChangedAt.getTime() / 1000,
+            10
+        );
+
+        return JWTTimestamp < changedTimestamp;
+    }
+
+    // False means NOT changed
+    return false;
+};
+
+customerSchema.methods.createPasswordResetToken = function () {
+    const resetToken = crypto.randomBytes(32).toString('hex');
+
+    this.passwordResetToken = crypto
+        .createHash('sha256')
+        .update(resetToken)
+        .digest('hex');
+
+    console.log({ resetToken }, this.passwordResetToken);
+
+    this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+    return resetToken;
+};
+customerSchema.methods.createVerificationToken = function () {
+    const resetToken = crypto.randomBytes(32).toString('hex');
+
+    this.verificationToken = crypto
+        .createHash('sha256')
+        .update(resetToken)
+        .digest('hex');
+
+    console.log({ resetToken }, this.verificationToken);
+
+    this.verificationTokenExpires = Date.now() + 10 * 60 * 1000;
+
+    return resetToken;
+};
+const Customer = mongoose.model('Customer', customerSchema);
+
+module.exports = Customer;
+</file>
+
+<file path="modles/formModle.js">
+const mongoose = require('mongoose');
+
+const adoptionFormSchema = new mongoose.Schema({
+    fullName: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    email: {
+        type: String,
+        required: true,
+        trim: true,
+        lowercase: true,
+    },
+    phoneNumber: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    job: {
+        hasJob: {
+            type: Boolean,
+            required: true,
+        },
+        jobTitle: {
+            type: String,
+            trim: true,
+        },
+    },
+    homeLocation: {
+        type: String,
+        enum: ['Urban', 'Rural', 'Homeless'],
+        required: true,
+    },
+    animalExperience: {
+        type: Boolean,
+        required: true,
+    },
+    understandsSocializing: {
+        type: Boolean,
+        required: true,
+    },
+    additionalHelpers: {
+        type: Boolean,
+        required: true,
+    },
+    budgetForAnimalCare: {
+        type: Boolean,
+        required: true,
+    },
+}, {
+    timestamps: true,
+});
+
+const AdoptionForm = mongoose.model('AdoptionForm', adoptionFormSchema);
+
+module.exports = AdoptionForm;
+</file>
+
+<file path="modles/petModle.js">
+const mongoose = require('mongoose');
+
+const petSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: [true, 'Please provide a name'],
+        trim: true
+    },
+    age: {
+        type: Number,
+        required: [true, 'Please provide an age']
+    },
+    type: {
+        type: String,
+        enum: ['Cat', 'Dog'],
+        required: [true, 'Please provide a type']
+    },
+    breed: {
+        type: String,
+        required: [true, 'Please provide a breed'],
+        trim: true
+    },
+    typeWeight: {
+        type: String,
+        enum: ['kilogram', 'pound'],
+        default: 'kilogram'
+    },
+    weight: {
+        type: Number,
+        required: [true, 'Please provide a weight']
+    },
+    gender: {
+        type: String,
+        enum: ['male', 'female'],
+        required: [true, 'Please provide a gender']
+    },
+    color: {
+        type: String,
+        enum: ['black', 'white', 'gray', 'brown', 'orange', 'cream'],
+        required: [true, 'Please provide a color']
+    },
+    description: {
+        type: String,
+        required: [true, 'Please provide a description'],
+        trim: true
+    },
+    dateAdded: {
+        type: Date,
+        default: Date.now
+    },
+    imageUrl: {
+        type: [String],
+        validate: {
+            validator: function (val) {
+                return val.length <= 3;
+            },
+            message: 'A cat can have up to 3 images'
+        },
+        required: [true, 'Please provide an image'],
+    },
+    address: {
+        type: String,
+        required: [true, 'Please provide an address'],
+        trim: true
+    },
+    city: {
+        type: String,
+        required: [true, 'Please provide a city'],
+        trim: true
+    },
+    phone: {
+        type: Number,
+        required: [true, 'Please provide a phone number'],
+        validate: {
+            validator: function (val) {
+                return /\d{10,15}/.test(val);
+            },
+            message: 'Please provide a valid phone number'
+        },
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Customer'
+    }
+});
+
+const Cat = mongoose.model('Pet', petSchema);
+
+module.exports = Cat;
+</file>
+
+<file path="modles/reviewModel.js">
+const mongoose = require('mongoose');
+
+const reviewSchema = new mongoose.Schema(
+  {
+    review: {
+      type: String,
+      required: [true, 'Review can not be empty!']
+    },
+    rating: {
+      type: Number,
+      min: 1,
+      max: 5
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    },
+    // FIX: a review needs to know which pet it belongs to so it can be
+    // listed via GET /api/v1/pets/:petId/reviews (mergeParams).
+    pet: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Pet',
+      required: [true, 'Review must belong to a pet']
+    },
+    user: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Customer',
+      required: [true, 'Review must belong to a user']
+    }
+  },
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  }
+);
+
+
+const Review = mongoose.model('Review', reviewSchema);
+
+module.exports = Review;
+</file>
+
+<file path="package.json">
+{
+  "name": "pet",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js",
+    "lint": "eslint",
+    "check-lint": "lint [0-9]*.js",
+    "test": "./node_modules/mocha/bin/mocha --require babel-register --exit",
+    "dev": "nodemon --exec babel-node --presets babel-preset-env ./index.js ./database.csv"
+  },
+  "author": "Mohamed Elafandy",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.2",
+    "chai-http": "^4.3.0",
+    "cloudinary": "^1.41.3",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "dotenv": "^7.0.0",
+    "express": "^4.19.2",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^7.4.0",
+    "fs": "^0.0.1-security",
+    "helmet": "^7.1.0",
+    "html-to-text": "^9.0.5",
+    "install": "^0.13.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.6.1",
+    "mongoose": "^5.13.22",
+    "morgan": "^1.9.1",
+    "multer": "^1.4.5-lts.1",
+    "multer-storage-cloudinary": "^4.0.0",
+    "nodemailer": "^6.9.14",
+    "passport": "^0.7.0",
+    "passport-google-oauth2": "^0.2.0",
+    "passport-google-oauth20": "^2.0.0",
+    "pug": "^3.0.3",
+    "slugify": "^1.6.6",
+    "socket.io": "^4.7.5",
+    "util": "^0.12.5",
+    "validator": "^13.12.0",
+    "xss-clean": "^0.1.4"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "chai": "^4.2.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-config-prettier": "^4.1.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-jest": "^22.17.0",
+    "eslint-plugin-jsx-a11y": "^6.2.1",
+    "eslint-plugin-node": "^8.0.1",
+    "eslint-plugin-prettier": "^3.0.1",
+    "eslint-plugin-react": "^7.12.4",
+    "mocha": "^6.2.2",
+    "nodemon": "^2.0.2",
+    "request": "^2.88.0",
+    "sinon": "^7.5.0"
+  },
+  "keywords": [],
+  "description": ""
+}
+</file>
+
+<file path="routes/adoptionFormRoutes.js">
+const express = require('express');
+const adoptionFormController = require('./../controllers/adoptionFormController');
+const authController = require('./../controllers/authController');
+const router = express.Router();
+
+// Routes for CRUD operations
+router.use(authController.protect);
+
+router
+    .route('/adoption')
+    .get(adoptionFormController.getAllAdoptionForms)
+    .post(adoptionFormController.createAdoptionForm);
+router
+    .route('/adoption/:id')
+    .get(adoptionFormController.getAdoptionForm)
+    .patch(adoptionFormController.updateAdoptionForm)
+    .delete(adoptionFormController.deleteAdoptionForm);
+
+module.exports = router;
+</file>
+
+<file path="routes/CustomerRoute.js">
+const express = require('express');
+const customerController = require('./../controllers/CustomerController');
+const authController = require('./../controllers/authController');
+const upload = require('./../utils/multer');
+
+const router = express.Router();
+
+router.post('/signup', upload.single('photo'), authController.signup);
+router.post('/login', authController.login);
+router.patch('/verify-email', authController.verifyEmail);
+router.get('/logout', authController.protect, authController.logout);
+
+router.post('/forgotPassword', authController.forgotPassword);
+router.patch('/resetPassword/:token', authController.resetPassword);
+
+
+
+
+
+
+router.use(authController.protect);
+
+router.get('/', customerController.getAllUsers);
+
+router.get('/me', customerController.getMe, customerController.getUser);
+
+router.patch('/updatePassword', authController.updatePassword);
+router.patch('/updateMe', upload.single('photo'), customerController.updateMe);
+
+
+router
+    .route('/:id')
+    .get(authController.protect, customerController.getUser)
+    .delete(authController.restrictTo('admin'), customerController.deleteUser);
+
+
+module.exports = router;
+</file>
+
+<file path="routes/petRoute.js">
+const express = require('express');
+const petController = require('./../controllers/petController');
+const authController = require('./../controllers/authController');
+const upload = require('./../utils/multer');
+const router = express.Router();
+
+router
+    .route('/')
+    .get(petController.getAllPets)
+    .post(authController.protect,
+        upload.array('imageUrl', 3),
+        petController.createPet); // Apply the upload middleware
+
+router.use(authController.protect);
+
+router
+    .route('/:id')
+    .get(petController.getPet)
+    .patch(upload.array('imageUrl', 3), petController.updatePet)
+    .delete(petController.deletePet);
+
+module.exports = router;
+</file>
+
+<file path="routes/reviewRoutes.js">
+const express = require('express');
+const reviewController = require('./../controllers/reviewController');
+const authController = require('./../controllers/authController');
+
+const router = express.Router({ mergeParams: true });
+
+router.use(authController.protect);
+
+router
+  .route('/')
+  .get(reviewController.getAllReviews)
+  .post(
+    authController.restrictTo('user'),
+    reviewController.setPetUserIds,
+    reviewController.createReview
+  );
+
+router
+  .route('/:id')
+  .get(reviewController.getReview)
+  .patch(reviewController.updateReview)
+  .delete(reviewController.deleteReview);
+
+module.exports = router;
+</file>
+
+<file path="utils/apiFeatures.js">
+class APIFeatures {
+  constructor(query, queryString) {
+    this.query = query;
+    this.queryString = queryString;
+  }
+
+  filter() {
+    const queryObj = { ...this.queryString };
+    const excludedFields = ['page', 'sort', 'limit', 'fields'];
+    excludedFields.forEach(el => delete queryObj[el]);
+
+    // 1B) Advanced filtering
+    let queryStr = JSON.stringify(queryObj);
+    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
+
+    this.query = this.query.find(JSON.parse(queryStr));
+
+    return this;
+  }
+
+  sort() {
+    if (this.queryString.sort) {
+      const sortBy = this.queryString.sort.split(',').join(' ');
+      this.query = this.query.sort(sortBy);
+    } else {
+      this.query = this.query.sort('-createdAt');
+    }
+
+    return this;
+  }
+
+  limitFields() {
+    if (this.queryString.fields) {
+      const fields = this.queryString.fields.split(',').join(' ');
+      this.query = this.query.select(fields);
+    } else {
+      this.query = this.query.select('-__v');
+    }
+
+    return this;
+  }
+
+  paginate() {
+    const page = this.queryString.page * 1 || 1;
+    const limit = this.queryString.limit * 1 || 100;
+    const skip = (page - 1) * limit;
+
+    this.query = this.query.skip(skip).limit(limit);
+
+    return this;
+  }
+}
+module.exports = APIFeatures;
+</file>
+
+<file path="utils/appError.js">
+class AppError extends Error {
+  constructor(message, statusCode) {
+    super(message);
+
+    this.statusCode = statusCode;
+    this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
+    this.isOperational = true;
+
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+
+module.exports = AppError;
+</file>
+
+<file path="utils/catchAsync.js">
+module.exports = fn => {
+  return (req, res, next) => {
+    fn(req, res, next).catch(next);
+  };
+};
+</file>
+
+<file path="utils/email.js">
+const nodemailer = require('nodemailer');
+const pug = require('pug');
+const { htmlToText } = require('html-to-text');
+
+module.exports = class Email {
+  constructor(user, url) {
+    this.to = user.email;
+    this.firstName = user.name.split(' ')[0];
+    this.url = url;
+    this.from = `Mohamed Elafandy <${process.env.MAIL_USER}>`;
+  }
+
+  newTransport() {
+    return nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_PASS,
+      },
+    });
+  }
+
+  async send(template, subject) {
+    const html = pug.renderFile(
+      `${__dirname}/../views/email/${template}.pug`,
+      {
+        firstName: this.firstName,
+        url: this.url,
+        subject,
+      },
+    );
+
+    const mailOptions = {
+      from: this.from,
+      to: this.to,
+      subject,
+      html,
+      text: htmlToText(html),
+    };
+
+    await this.newTransport().sendMail(mailOptions);
+  }
+
+  async sendWelcome() {
+    await this.send('welcome', 'Welcome to Family!');
+  }
+
+  async sendPasswordReset() {
+    await this.send(
+      'passwordReset',
+      'Your password reset token (valid for only 10 minutes)',
+    );
+  }
+};
+</file>
+
+<file path="utils/multer.js">
+const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('./../config/cloudinaryConfig');
+const path = require('path');
+
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'pet', // folder in Cloudinary to store images
+        allowed_formats: ['jpeg', 'jpg', 'png']
+    },
+});
+
+const fileFilter = (req, file, cb) => {
+    const fileTypes = /jpeg|jpg|png/;
+    const extname = fileTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = fileTypes.test(file.mimetype);
+
+    if (mimetype && extname) {
+        return cb(null, true);
+    } else {
+        cb('Error: Images Only!');
+    }
+};
+
+
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 1024 * 1024 * 5 },
+    fileFilter: fileFilter
+});
+
+module.exports = upload;
+</file>
+
+<file path="views/email/_style.pug">
+style.
+  img {
+    border: none;
+    -ms-interpolation-mode: bicubic;
+    max-width: 100%; 
+  }
+  body {
+    background-color: #f6f6f6;
+    font-family: sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 14px;
+    line-height: 1.4;
+    margin: 0;
+    padding: 0;
+    -ms-text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%; 
+  }
+  table {
+    border-collapse: separate;
+    mso-table-lspace: 0pt;
+    mso-table-rspace: 0pt;
+    width: 100%; }
+    table td {
+      font-family: sans-serif;
+      font-size: 14px;
+      vertical-align: top; 
+  }
+  .body {
+    background-color: #f6f6f6;
+    width: 100%; 
+  }
+  .container {
+    display: block;
+    margin: 0 auto !important;
+    /* makes it centered */
+    max-width: 580px;
+    padding: 10px;
+    width: 580px; 
+  }
+  .content {
+    box-sizing: border-box;
+    display: block;
+    margin: 0 auto;
+    max-width: 580px;
+    padding: 10px; 
+  }
+  .main {
+    background: #ffffff;
+    border-radius: 3px;
+    width: 100%; 
+  }
+  .wrapper {
+    box-sizing: border-box;
+    padding: 20px; 
+  }
+  .content-block {
+    padding-bottom: 10px;
+    padding-top: 10px;
+  }
+  .footer {
+    clear: both;
+    margin-top: 10px;
+    text-align: center;
+    width: 100%; 
+  }
+    .footer td,
+    .footer p,
+    .footer span,
+    .footer a {
+      color: #999999;
+      font-size: 12px;
+      text-align: center; 
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: #000000;
+    font-family: sans-serif;
+    font-weight: 400;
+    line-height: 1.4;
+    margin: 0;
+    margin-bottom: 30px; 
+  }
+  h1 {
+    font-size: 35px;
+    font-weight: 300;
+    text-align: center;
+    text-transform: capitalize; 
+  }
+  p,
+  ul,
+  ol {
+    font-family: sans-serif;
+    font-size: 14px;
+    font-weight: normal;
+    margin: 0;
+    margin-bottom: 15px; 
+  }
+    p li,
+    ul li,
+    ol li {
+      list-style-position: inside;
+      margin-left: 5px; 
+  }
+  a {
+    color: #55c57a;
+    text-decoration: underline; 
+  }
+  .btn {
+    box-sizing: border-box;
+    width: 100%; }
+    .btn > tbody > tr > td {
+      padding-bottom: 15px; }
+    .btn table {
+      width: auto; 
+  }
+    .btn table td {
+      background-color: #ffffff;
+      border-radius: 5px;
+      text-align: center; 
+  }
+    .btn a {
+      background-color: #ffffff;
+      border: solid 1px #55c57a;
+      border-radius: 5px;
+      box-sizing: border-box;
+      color: #55c57a;
+      cursor: pointer;
+      display: inline-block;
+      font-size: 14px;
+      font-weight: bold;
+      margin: 0;
+      padding: 12px 25px;
+      text-decoration: none;
+      text-transform: capitalize; 
+  }
+  .btn-primary table td {
+    background-color: #55c57a; 
+  }
+  .btn-primary a {
+    background-color: #55c57a;
+    border-color: #55c57a;
+    color: #ffffff; 
+  }
+  .last {
+    margin-bottom: 0; 
+  }
+  .first {
+    margin-top: 0; 
+  }
+  .align-center {
+    text-align: center; 
+  }
+  .align-right {
+    text-align: right; 
+  }
+  .align-left {
+    text-align: left; 
+  }
+  .clear {
+    clear: both; 
+  }
+  .mt0 {
+    margin-top: 0; 
+  }
+  .mb0 {
+    margin-bottom: 0; 
+  }
+  .preheader {
+    color: transparent;
+    display: none;
+    height: 0;
+    max-height: 0;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    mso-hide: all;
+    visibility: hidden;
+    width: 0; 
+  }
+  .powered-by a {
+    text-decoration: none; 
+  }
+  hr {
+    border: 0;
+    border-bottom: 1px solid #f6f6f6;
+    margin: 20px 0; 
+  }
+  @media only screen and (max-width: 620px) {
+    table[class=body] h1 {
+      font-size: 28px !important;
+      margin-bottom: 10px !important; 
+    }
+    table[class=body] p,
+    table[class=body] ul,
+    table[class=body] ol,
+    table[class=body] td,
+    table[class=body] span,
+    table[class=body] a {
+      font-size: 16px !important; 
+    }
+    table[class=body] .wrapper,
+    table[class=body] .article {
+      padding: 10px !important; 
+    }
+    table[class=body] .content {
+      padding: 0 !important; 
+    }
+    table[class=body] .container {
+      padding: 0 !important;
+      width: 100% !important; 
+    }
+    table[class=body] .main {
+      border-left-width: 0 !important;
+      border-radius: 0 !important;
+      border-right-width: 0 !important; 
+    }
+    table[class=body] .btn table {
+      width: 100% !important; 
+    }
+    table[class=body] .btn a {
+      width: 100% !important; 
+    }
+    table[class=body] .img-responsive {
+      height: auto !important;
+      max-width: 100% !important;
+      width: auto !important; 
+    }
+  }
+  @media all {
+    .ExternalClass {
+      width: 100%; 
+    }
+    .ExternalClass,
+    .ExternalClass p,
+    .ExternalClass span,
+    .ExternalClass font,
+    .ExternalClass td,
+    .ExternalClass div {
+      line-height: 100%; 
+    }
+    .apple-link a {
+      color: inherit !important;
+      font-family: inherit !important;
+      font-size: inherit !important;
+      font-weight: inherit !important;
+      line-height: inherit !important;
+      text-decoration: none !important; 
+    }
+    .btn-primary table td:hover {
+      background-color: #ed8ad4 !important; 
+    }
+    .btn-primary a:hover {
+      background-color: #ed8ad4 !important;
+      border-color: #ed8ad4 !important; 
+    } 
+  }
+</file>
+
+<file path="views/email/baseEmail.pug">
+//- Email template adapted from https://github.com/leemunroe/responsive-html-email-template
+//- Converted from HTML using https://html2pug.now.sh/
+
+doctype html
+html
+  head
+    meta(name='viewport', content='width=device-width')
+    meta(http-equiv='Content-Type', content='text/html; charset=UTF-8')
+    title= subject
+
+    include _style
+  body
+    table.body(role='presentation', border='0', cellpadding='0', cellspacing='0')
+      tbody
+        tr
+          td
+          td.container
+            .content
+              // START CENTERED WHITE CONTAINER
+              table.main(role='presentation')
+
+                // START MAIN AREA
+                tbody
+                  tr
+                    td.wrapper
+                      table(role='presentation', border='0', cellpadding='0', cellspacing='0')
+                        tbody
+                          tr
+                            td
+                              // CONTENT
+                              block content
+
+              // START FOOTER
+              .footer
+                table(role='presentation', border='0', cellpadding='0', cellspacing='0')
+                  tbody
+                    //- tr
+                    //-   td.content-block
+                    //-     //- span.apple-link Natours Inc, 123 Nowhere Road, San Francisco CA 99999
+                    //-     br
+                    //-     |  Don't like these emails? 
+                    //-     a(href='#') Unsubscribe
+          //- td
+</file>
+
+<file path="views/email/passwordReset.pug">
+extends baseEmail
+
+block content
+  table.main-container(role='presentation', width='100%', border='0', cellpadding='0', cellspacing='0', style='background-color: #b1dcff; font-family: Arial, sans-serif; padding: 30px; text-align: center; border-radius: 20%; box-shadow: 14px 14px 10px rgba(0, 0, 0, 0.5);')
+    tbody
+      tr
+        td(style='padding: 20px;')
+          h1(style='color: #ffffff00; font-size: 24px; margin-bottom: 36px; text-shadow: 1px 20px 3px #023d0f;') Password Reset Request
+          p(style='color: #000000; font-size: 16px; line-height: 2;')
+            | Hi #{firstName},<br>
+            | Forgot your password? No worries! Just click the button below to reset it.
+          table.btn-primary(role='presentation', border='0', cellpadding='0', cellspacing='0', style='margin: 20px auto;')
+            tbody
+              tr
+                td(style='padding: 0;')
+                  a(href=`${url}`, target='_blank', style='background-color: #1ef3e7; color: #fff; padding: 16px 20px; font-size: 16px; text-decoration: none; border-radius: 10%;box-shadow: -4px 3px 20px 2px rgb(253 253 253 / 50%)') Reset your password
+          p(style='color: red; font-size: 14px; margin-top: 40px; line-height: 1.6;')
+            | If you didn't request a password reset, no action is needed.<br>
+            | Please ignore this email.
+
+      tr
+        td(style='padding: 10px 0;')
+          hr(style='border: none; border-top: 1px solid #ddd; margin: 20px auto; width: 80%;')
+          p(style='color: #888; font-size: 12px;')
+            | &copy; 2024 potapia. All rights reserved.
+</file>
+
+<file path="views/email/welcome.pug">
+extends baseEmail
+
+block content
+  p Hi #{firstName},
+  p Welcome to Natours, we're glad to have you 🎉🙏
+  p We're all a big familiy here, so make sure to upload your user photo so we get to know you a bit better!
+  table.btn.btn-primary(role='presentation', border='0', cellpadding='0', cellspacing='0')
+    tbody
+      tr
+        td(align='left')
+          table(role='presentation', border='0', cellpadding='0', cellspacing='0')
+            tbody
+              tr
+                td
+                  a(href=`${url}`, target='_blank') Upload user photo
+  p If you need any help with booking your next tour, please don't hesitate to contact me!
+  p - Jonas Schmedtmann, CEO
+</file>
+
+</files>

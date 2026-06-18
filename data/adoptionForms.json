@@ -1,0 +1,43 @@
+[
+  {
+    "fullName": "Nour Ahmed",
+    "email": "nour@example.com",
+    "phoneNumber": "01012344321",
+    "job": {
+      "hasJob": true,
+      "jobTitle": "Veterinary Nurse"
+    },
+    "homeLocation": "Urban",
+    "animalExperience": true,
+    "understandsSocializing": true,
+    "additionalHelpers": true,
+    "budgetForAnimalCare": true
+  },
+  {
+    "fullName": "Karim Farouk",
+    "email": "karim@example.com",
+    "phoneNumber": "01155667788",
+    "job": {
+      "hasJob": true,
+      "jobTitle": "Software Engineer"
+    },
+    "homeLocation": "Urban",
+    "animalExperience": false,
+    "understandsSocializing": true,
+    "additionalHelpers": false,
+    "budgetForAnimalCare": true
+  },
+  {
+    "fullName": "Dina Samir",
+    "email": "dina@example.com",
+    "phoneNumber": "01234554321",
+    "job": {
+      "hasJob": false
+    },
+    "homeLocation": "Rural",
+    "animalExperience": true,
+    "understandsSocializing": true,
+    "additionalHelpers": true,
+    "budgetForAnimalCare": false
+  }
+]
